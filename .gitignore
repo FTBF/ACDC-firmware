@@ -1,0 +1,10 @@
+.qsys_edit
+.*.swp
+.*.swo
+db
+incremental_db
+simulation
+*.bak
+*.rpt
+*.qws
+*.sopcinfo
