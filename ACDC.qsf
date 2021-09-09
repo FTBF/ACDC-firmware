@@ -98,8 +98,8 @@ set_global_assignment -name VHDL_FILE source/ClockGenerator.vhd
 set_global_assignment -name VHDL_FILE source/ADC_ctrl.vhd
 set_global_assignment -name SDC_FILE ACDC.out.sdc
 set_global_assignment -name SDC_FILE ACDC.sdc
-set_global_assignment -name VHDL_FILE source/Paul/ACDC_test.vhd
-set_global_assignment -name QIP_FILE source/Paul/pll.qip
+set_global_assignment -name VHDL_FILE source/ACDC_test.vhd
+set_global_assignment -name QIP_FILE source/pll.qip
 set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "0 MHz" -to calEnable
 set_location_assignment PIN_Y10 -to ledOut[8]
 set_location_assignment PIN_AD12 -to ledOut[7]
