@@ -1,0 +1,358 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 2020  Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions 
+# and other software and tools, and any partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Intel Program License 
+# Subscription Agreement, the Intel Quartus Prime License Agreement,
+# the Intel FPGA IP License Agreement, or other applicable license
+# agreement, including, without limitation, that your use is for
+# the sole purpose of programming logic devices manufactured by
+# Intel and sold by Intel or its authorized distributors.  Please
+# refer to the applicable agreement for further details, at
+# https://fpgasoftware.intel.com/eula.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus Prime
+# Version 20.1.1 Build 720 11/11/2020 SJ Lite Edition
+# Date created = 03:48:50  May 05, 2021
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		ACDC_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus Prime software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "Cyclone IV GX"
+set_global_assignment -name DEVICE EP4CGX110DF27C7
+set_global_assignment -name TOP_LEVEL_ENTITY ACDC_test
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 20.1.1
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "03:48:50  MAY 05, 2021"
+set_global_assignment -name LAST_QUARTUS_VERSION "19.1.0 Standard Edition"
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name EDA_SIMULATION_TOOL "Active-HDL (VHDL)"
+set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_timing
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
+set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
+set_global_assignment -name VHDL_SHOW_LMF_MAPPING_MESSAGES OFF
+set_global_assignment -name VERILOG_INPUT_VERSION SYSTEMVERILOG_2005
+set_global_assignment -name VERILOG_SHOW_LMF_MAPPING_MESSAGES OFF
+set_global_assignment -name EDA_DESIGN_ENTRY_SYNTHESIS_TOOL "Design Compiler FPGA" -entity ACDC_top_level.bdf
+set_global_assignment -name EDA_INPUT_GND_NAME GND -entity ACDC_top_level.bdf -section_id eda_design_synthesis
+set_global_assignment -name EDA_INPUT_VCC_NAME VDD -entity ACDC_top_level.bdf -section_id eda_design_synthesis
+set_global_assignment -name EDA_LMF_FILE dc_fpga.lmf -entity ACDC_top_level.bdf -section_id eda_design_synthesis
+set_global_assignment -name EDA_SHOW_LMF_MAPPING_MESSAGES ON -entity ACDC_top_level.bdf -section_id eda_design_synthesis
+set_global_assignment -name EDA_RUN_TOOL_AUTOMATICALLY OFF -entity ACDC_top_level.bdf -section_id eda_design_synthesis
+set_global_assignment -name EDA_INPUT_DATA_FORMAT EDIF -entity ACDC_top_level.bdf -section_id eda_design_synthesis
+set_global_assignment -name ENABLE_DRC_SETTINGS ON
+set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
+set_global_assignment -name FLOW_ENABLE_IO_ASSIGNMENT_ANALYSIS ON
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -entity ACDC_top_level -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -entity ACDC_top_level -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -entity ACDC_top_level -section_id Top
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -entity ACDC_top_level -section_id Top
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name VHDL_FILE source/common/defs.vhd
+set_global_assignment -name VHDL_FILE source/common/components.vhd
+set_global_assignment -name VHDL_FILE source/Wilkinson_Feedback_Loop.vhd
+set_global_assignment -name VHDL_FILE source/VCDL_Monitor_Loop.vhd
+set_global_assignment -name VHDL_FILE source/uart.vhd
+set_global_assignment -name VHDL_FILE source/trigger.vhd
+set_global_assignment -name VHDL_FILE source/timeout.vhd
+set_global_assignment -name VHDL_FILE source/systemTime.vhd
+set_global_assignment -name VHDL_FILE source/synchronizer.vhd
+set_global_assignment -name VHDL_FILE source/selfTrigger.vhd
+set_global_assignment -name VHDL_FILE source/rxCommand.vhd
+set_global_assignment -name VHDL_FILE source/PSEC4_driver.vhd
+set_global_assignment -name VHDL_FILE source/PSEC4_dataBuffer.vhd
+set_global_assignment -name VHDL_FILE source/LED_driver.vhd
+set_global_assignment -name VHDL_FILE source/fastCounter64.vhd
+set_global_assignment -name VHDL_FILE source/dataRam.vhd
+set_global_assignment -name VHDL_FILE source/DataHandler.vhd
+set_global_assignment -name VHDL_FILE source/dacSerial.vhd
+set_global_assignment -name VHDL_FILE source/CommandHandler.vhd
+set_global_assignment -name VHDL_FILE source/ClockGenerator.vhd
+set_global_assignment -name VHDL_FILE source/ADC_ctrl.vhd
+set_global_assignment -name SDC_FILE ACDC.out.sdc
+set_global_assignment -name SDC_FILE ACDC.sdc
+set_global_assignment -name VHDL_FILE source/Paul/ACDC_test.vhd
+set_global_assignment -name QIP_FILE source/Paul/pll.qip
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "0 MHz" -to calEnable
+set_location_assignment PIN_Y10 -to ledOut[8]
+set_location_assignment PIN_AD12 -to ledOut[7]
+set_location_assignment PIN_W11 -to ledOut[6]
+set_location_assignment PIN_AC10 -to ledOut[5]
+set_location_assignment PIN_V13 -to ledOut[4]
+set_location_assignment PIN_Y11 -to ledOut[3]
+set_location_assignment PIN_AD10 -to ledOut[2]
+set_location_assignment PIN_V12 -to ledOut[1]
+set_location_assignment PIN_AB11 -to ledOut[0]
+set_location_assignment PIN_B2 -to jcpll_lock
+set_location_assignment PIN_A5 -to jcpll_ctrl.spi_mosi
+set_location_assignment PIN_A3 -to jcpll_ctrl.spi_latchEnable
+set_location_assignment PIN_D2 -to jcpll_ctrl.spi_clock
+set_location_assignment PIN_B1 -to jcpll_ctrl.powerDown
+set_location_assignment PIN_J14 -to clockIn.usb_IFCLK
+set_location_assignment PIN_L15 -to clockIn.localOsc
+set_location_assignment PIN_T14 -to clockIn.jcpll
+set_location_assignment PIN_U12 -to calEnable[14]
+set_location_assignment PIN_AE11 -to calEnable[13]
+set_location_assignment PIN_AC11 -to calEnable[12]
+set_location_assignment PIN_AC6 -to calEnable[11]
+set_location_assignment PIN_AC8 -to calEnable[10]
+set_location_assignment PIN_AB8 -to calEnable[9]
+set_location_assignment PIN_AA8 -to calEnable[8]
+set_location_assignment PIN_AE7 -to calEnable[7]
+set_location_assignment PIN_Y12 -to calEnable[6]
+set_location_assignment PIN_AB9 -to calEnable[5]
+set_location_assignment PIN_AA7 -to calEnable[4]
+set_location_assignment PIN_AF6 -to calEnable[3]
+set_location_assignment PIN_AC12 -to calEnable[2]
+set_location_assignment PIN_V14 -to calEnable[1]
+set_location_assignment PIN_AB12 -to calEnable[0]
+set_location_assignment PIN_D7 -to SMA_trigIn
+set_location_assignment PIN_A25 -to PSEC4_trigSign
+set_location_assignment PIN_AE21 -to PSEC4_out[4].trigClear
+set_location_assignment PIN_V16 -to PSEC4_out[4].ringOsc_enable
+set_location_assignment PIN_AD21 -to PSEC4_out[4].readClock
+set_location_assignment PIN_AF21 -to PSEC4_out[4].rampStart
+set_location_assignment PIN_AC15 -to PSEC4_out[4].extTrig
+set_location_assignment PIN_W19 -to PSEC4_out[4].channel[2]
+set_location_assignment PIN_W18 -to PSEC4_out[4].channel[1]
+set_location_assignment PIN_W17 -to PSEC4_out[4].channel[0]
+set_location_assignment PIN_AC21 -to PSEC4_out[4].TokIn[1]
+set_location_assignment PIN_AF15 -to PSEC4_out[4].TokIn[0]
+set_location_assignment PIN_AE14 -to PSEC4_out[4].TokDecode[2]
+set_location_assignment PIN_AD14 -to PSEC4_out[4].TokDecode[1]
+set_location_assignment PIN_AC14 -to PSEC4_out[4].TokDecode[0]
+set_location_assignment PIN_AD20 -to PSEC4_out[4].DLLreset_n
+set_location_assignment PIN_AE15 -to PSEC4_out[4].ADClatch
+set_location_assignment PIN_AD15 -to PSEC4_out[4].ADCclear
+set_location_assignment PIN_W25 -to PSEC4_out[3].trigClear
+set_location_assignment PIN_AF24 -to PSEC4_out[3].ringOsc_enable
+set_location_assignment PIN_W26 -to PSEC4_out[3].readClock
+set_location_assignment PIN_W24 -to PSEC4_out[3].rampStart
+set_location_assignment PIN_AF25 -to PSEC4_out[3].extTrig
+set_location_assignment PIN_AA20 -to PSEC4_out[3].channel[2]
+set_location_assignment PIN_AF22 -to PSEC4_out[3].channel[1]
+set_location_assignment PIN_AE22 -to PSEC4_out[3].channel[0]
+set_location_assignment PIN_V23 -to PSEC4_out[3].TokIn[1]
+set_location_assignment PIN_AD22 -to PSEC4_out[3].TokIn[0]
+set_location_assignment PIN_AC22 -to PSEC4_out[3].TokDecode[2]
+set_location_assignment PIN_AF23 -to PSEC4_out[3].TokDecode[1]
+set_location_assignment PIN_AE23 -to PSEC4_out[3].TokDecode[0]
+set_location_assignment PIN_Y26 -to PSEC4_out[3].DLLreset_n
+set_location_assignment PIN_AD23 -to PSEC4_out[3].ADClatch
+set_location_assignment PIN_AD24 -to PSEC4_out[3].ADCclear
+set_location_assignment PIN_L25 -to PSEC4_out[2].trigClear
+set_location_assignment PIN_V22 -to PSEC4_out[2].ringOsc_enable
+set_location_assignment PIN_L26 -to PSEC4_out[2].readClock
+set_location_assignment PIN_M19 -to PSEC4_out[2].rampStart
+set_location_assignment PIN_T22 -to PSEC4_out[2].extTrig
+set_location_assignment PIN_V26 -to PSEC4_out[2].channel[2]
+set_location_assignment PIN_U25 -to PSEC4_out[2].channel[1]
+set_location_assignment PIN_U26 -to PSEC4_out[2].channel[0]
+set_location_assignment PIN_L24 -to PSEC4_out[2].TokIn[1]
+set_location_assignment PIN_U23 -to PSEC4_out[2].TokIn[0]
+set_location_assignment PIN_U22 -to PSEC4_out[2].TokDecode[2]
+set_location_assignment PIN_T19 -to PSEC4_out[2].TokDecode[1]
+set_location_assignment PIN_U19 -to PSEC4_out[2].TokDecode[0]
+set_location_assignment PIN_M22 -to PSEC4_out[2].DLLreset_n
+set_location_assignment PIN_T21 -to PSEC4_out[2].ADClatch
+set_location_assignment PIN_T23 -to PSEC4_out[2].ADCclear
+set_location_assignment PIN_B26 -to PSEC4_out[1].trigClear
+set_location_assignment PIN_K23 -to PSEC4_out[1].ringOsc_enable
+set_location_assignment PIN_C26 -to PSEC4_out[1].readClock
+set_location_assignment PIN_C24 -to PSEC4_out[1].rampStart
+set_location_assignment PIN_J26 -to PSEC4_out[1].extTrig
+set_location_assignment PIN_L19 -to PSEC4_out[1].channel[2]
+set_location_assignment PIN_L21 -to PSEC4_out[1].channel[1]
+set_location_assignment PIN_L22 -to PSEC4_out[1].channel[0]
+set_location_assignment PIN_B25 -to PSEC4_out[1].TokIn[1]
+set_location_assignment PIN_K22 -to PSEC4_out[1].TokIn[0]
+set_location_assignment PIN_K19 -to PSEC4_out[1].TokDecode[2]
+set_location_assignment PIN_K20 -to PSEC4_out[1].TokDecode[1]
+set_location_assignment PIN_K21 -to PSEC4_out[1].TokDecode[0]
+set_location_assignment PIN_C25 -to PSEC4_out[1].DLLreset_n
+set_location_assignment PIN_K24 -to PSEC4_out[1].ADClatch
+set_location_assignment PIN_K26 -to PSEC4_out[1].ADCclear
+set_location_assignment PIN_C15 -to PSEC4_out[0].trigClear
+set_location_assignment PIN_A24 -to PSEC4_out[0].ringOsc_enable
+set_location_assignment PIN_A15 -to PSEC4_out[0].readClock
+set_location_assignment PIN_B15 -to PSEC4_out[0].rampStart
+set_location_assignment PIN_C21 -to PSEC4_out[0].extTrig
+set_location_assignment PIN_B23 -to PSEC4_out[0].channel[2]
+set_location_assignment PIN_A22 -to PSEC4_out[0].channel[1]
+set_location_assignment PIN_B22 -to PSEC4_out[0].channel[0]
+set_location_assignment PIN_D15 -to PSEC4_out[0].TokIn[1]
+set_location_assignment PIN_C23 -to PSEC4_out[0].TokIn[0]
+set_location_assignment PIN_D22 -to PSEC4_out[0].TokDecode[2]
+set_location_assignment PIN_C22 -to PSEC4_out[0].TokDecode[1]
+set_location_assignment PIN_A21 -to PSEC4_out[0].TokDecode[0]
+set_location_assignment PIN_C14 -to PSEC4_out[0].DLLreset_n
+set_location_assignment PIN_B21 -to PSEC4_out[0].ADClatch
+set_location_assignment PIN_D21 -to PSEC4_out[0].ADCclear
+set_location_assignment PIN_AD18 -to PSEC4_in[4].trig[5]
+set_location_assignment PIN_AE18 -to PSEC4_in[4].trig[4]
+set_location_assignment PIN_AF18 -to PSEC4_in[4].trig[3]
+set_location_assignment PIN_AC17 -to PSEC4_in[4].trig[2]
+set_location_assignment PIN_AD17 -to PSEC4_in[4].trig[1]
+set_location_assignment PIN_AF17 -to PSEC4_in[4].trig[0]
+set_location_assignment PIN_W16 -to PSEC4_in[4].ringOsc_mon
+set_location_assignment PIN_AF20 -to PSEC4_in[4].overflow
+set_location_assignment PIN_AC19 -to PSEC4_in[4].data[11]
+set_location_assignment PIN_AD19 -to PSEC4_in[4].data[10]
+set_location_assignment PIN_AE19 -to PSEC4_in[4].data[9]
+set_location_assignment PIN_AF19 -to PSEC4_in[4].data[8]
+set_location_assignment PIN_AC18 -to PSEC4_in[4].data[7]
+set_location_assignment PIN_Y17 -to PSEC4_in[4].data[6]
+set_location_assignment PIN_AE17 -to PSEC4_in[4].data[5]
+set_location_assignment PIN_AC16 -to PSEC4_in[4].data[4]
+set_location_assignment PIN_AD16 -to PSEC4_in[4].data[3]
+set_location_assignment PIN_AF16 -to PSEC4_in[4].data[2]
+set_location_assignment PIN_AA15 -to PSEC4_in[4].data[1]
+set_location_assignment PIN_AB15 -to PSEC4_in[4].data[0]
+set_location_assignment PIN_AF13 -to PSEC4_in[4].DLL_clock
+set_location_assignment PIN_AA24 -to PSEC4_in[3].trig[5]
+set_location_assignment PIN_AB24 -to PSEC4_in[3].trig[4]
+set_location_assignment PIN_AA23 -to PSEC4_in[3].trig[3]
+set_location_assignment PIN_AC23 -to PSEC4_in[3].trig[2]
+set_location_assignment PIN_AB23 -to PSEC4_in[3].trig[1]
+set_location_assignment PIN_AD26 -to PSEC4_in[3].trig[0]
+set_location_assignment PIN_AB20 -to PSEC4_in[3].ringOsc_mon
+set_location_assignment PIN_W22 -to PSEC4_in[3].overflow
+set_location_assignment PIN_Y25 -to PSEC4_in[3].data[11]
+set_location_assignment PIN_Y24 -to PSEC4_in[3].data[10]
+set_location_assignment PIN_AA26 -to PSEC4_in[3].data[9]
+set_location_assignment PIN_AA25 -to PSEC4_in[3].data[8]
+set_location_assignment PIN_Y23 -to PSEC4_in[3].data[7]
+set_location_assignment PIN_AB26 -to PSEC4_in[3].data[6]
+set_location_assignment PIN_AC26 -to PSEC4_in[3].data[5]
+set_location_assignment PIN_AC24 -to PSEC4_in[3].data[4]
+set_location_assignment PIN_AC25 -to PSEC4_in[3].data[3]
+set_location_assignment PIN_AE26 -to PSEC4_in[3].data[2]
+set_location_assignment PIN_AD25 -to PSEC4_in[3].data[1]
+set_location_assignment PIN_AE25 -to PSEC4_in[3].data[0]
+set_location_assignment PIN_R26 -to PSEC4_in[3].DLL_clock
+set_location_assignment PIN_N19 -to PSEC4_in[2].trig[5]
+set_location_assignment PIN_P23 -to PSEC4_in[2].trig[4]
+set_location_assignment PIN_P20 -to PSEC4_in[2].trig[3]
+set_location_assignment PIN_R23 -to PSEC4_in[2].trig[2]
+set_location_assignment PIN_R19 -to PSEC4_in[2].trig[1]
+set_location_assignment PIN_P19 -to PSEC4_in[2].trig[0]
+set_location_assignment PIN_V24 -to PSEC4_in[2].ringOsc_mon
+set_location_assignment PIN_M24 -to PSEC4_in[2].overflow
+set_location_assignment PIN_M25 -to PSEC4_in[2].data[11]
+set_location_assignment PIN_M26 -to PSEC4_in[2].data[10]
+set_location_assignment PIN_N24 -to PSEC4_in[2].data[9]
+set_location_assignment PIN_N23 -to PSEC4_in[2].data[8]
+set_location_assignment PIN_N22 -to PSEC4_in[2].data[7]
+set_location_assignment PIN_N20 -to PSEC4_in[2].data[6]
+set_location_assignment PIN_R25 -to PSEC4_in[2].data[5]
+set_location_assignment PIN_R22 -to PSEC4_in[2].data[4]
+set_location_assignment PIN_R20 -to PSEC4_in[2].data[3]
+set_location_assignment PIN_T25 -to PSEC4_in[2].data[2]
+set_location_assignment PIN_T26 -to PSEC4_in[2].data[1]
+set_location_assignment PIN_T24 -to PSEC4_in[2].data[0]
+set_location_assignment PIN_N25 -to PSEC4_in[2].DLL_clock
+set_location_assignment PIN_F23 -to PSEC4_in[1].trig[5]
+set_location_assignment PIN_F24 -to PSEC4_in[1].trig[4]
+set_location_assignment PIN_F26 -to PSEC4_in[1].trig[3]
+set_location_assignment PIN_G22 -to PSEC4_in[1].trig[2]
+set_location_assignment PIN_H23 -to PSEC4_in[1].trig[1]
+set_location_assignment PIN_H24 -to PSEC4_in[1].trig[0]
+set_location_assignment PIN_L23 -to PSEC4_in[1].ringOsc_mon
+set_location_assignment PIN_D25 -to PSEC4_in[1].overflow
+set_location_assignment PIN_D26 -to PSEC4_in[1].data[11]
+set_location_assignment PIN_E24 -to PSEC4_in[1].data[10]
+set_location_assignment PIN_E25 -to PSEC4_in[1].data[9]
+set_location_assignment PIN_E26 -to PSEC4_in[1].data[8]
+set_location_assignment PIN_G24 -to PSEC4_in[1].data[7]
+set_location_assignment PIN_G25 -to PSEC4_in[1].data[6]
+set_location_assignment PIN_G26 -to PSEC4_in[1].data[5]
+set_location_assignment PIN_H22 -to PSEC4_in[1].data[4]
+set_location_assignment PIN_H25 -to PSEC4_in[1].data[3]
+set_location_assignment PIN_H26 -to PSEC4_in[1].data[2]
+set_location_assignment PIN_J23 -to PSEC4_in[1].data[1]
+set_location_assignment PIN_J25 -to PSEC4_in[1].data[0]
+set_location_assignment PIN_N26 -to PSEC4_in[1].DLL_clock
+set_location_assignment PIN_E18 -to PSEC4_in[0].trig[5]
+set_location_assignment PIN_C18 -to PSEC4_in[0].trig[4]
+set_location_assignment PIN_B18 -to PSEC4_in[0].trig[3]
+set_location_assignment PIN_A18 -to PSEC4_in[0].trig[2]
+set_location_assignment PIN_E19 -to PSEC4_in[0].trig[1]
+set_location_assignment PIN_A19 -to PSEC4_in[0].trig[0]
+set_location_assignment PIN_A23 -to PSEC4_in[0].ringOsc_mon
+set_location_assignment PIN_C16 -to PSEC4_in[0].overflow
+set_location_assignment PIN_D17 -to PSEC4_in[0].data[11]
+set_location_assignment PIN_C17 -to PSEC4_in[0].data[10]
+set_location_assignment PIN_B17 -to PSEC4_in[0].data[9]
+set_location_assignment PIN_A16 -to PSEC4_in[0].data[8]
+set_location_assignment PIN_A17 -to PSEC4_in[0].data[7]
+set_location_assignment PIN_D18 -to PSEC4_in[0].data[6]
+set_location_assignment PIN_D19 -to PSEC4_in[0].data[5]
+set_location_assignment PIN_C19 -to PSEC4_in[0].data[4]
+set_location_assignment PIN_B19 -to PSEC4_in[0].data[3]
+set_location_assignment PIN_D20 -to PSEC4_in[0].data[2]
+set_location_assignment PIN_C20 -to PSEC4_in[0].data[1]
+set_location_assignment PIN_A20 -to PSEC4_in[0].data[0]
+set_location_assignment PIN_B14 -to PSEC4_in[0].DLL_clock
+set_location_assignment PIN_D24 -to PSEC4_freq_sel
+set_location_assignment PIN_AF7 -to LVDS_out[3]
+set_location_assignment PIN_AF4 -to LVDS_out[2]
+set_location_assignment PIN_AF2 -to LVDS_out[1]
+set_location_assignment PIN_AE1 -to LVDS_out[0]
+set_location_assignment PIN_AF11 -to LVDS_in[2]
+set_location_assignment PIN_AE9 -to LVDS_in[1]
+set_location_assignment PIN_AE5 -to LVDS_in[0]
+set_location_assignment PIN_B5 -to DAC[2].serialData
+set_location_assignment PIN_B4 -to DAC[2].serialClock
+set_location_assignment PIN_C9 -to DAC[2].load
+set_location_assignment PIN_E8 -to DAC[2].clear
+set_location_assignment PIN_D3 -to DAC[1].serialData
+set_location_assignment PIN_E2 -to DAC[1].serialClock
+set_location_assignment PIN_C4 -to DAC[1].load
+set_location_assignment PIN_C1 -to DAC[1].clear
+set_location_assignment PIN_D8 -to DAC[0].serialData
+set_location_assignment PIN_E7 -to DAC[0].serialClock
+set_location_assignment PIN_C8 -to DAC[0].load
+set_location_assignment PIN_E1 -to DAC[0].clear
+
+set_instance_assignment -name IO_STANDARD LVDS_E_3R -to LVDS_out[3]
+set_instance_assignment -name IO_STANDARD LVDS_E_3R -to LVDS_out[2]
+set_instance_assignment -name IO_STANDARD LVDS_E_3R -to LVDS_out[1]
+set_instance_assignment -name IO_STANDARD LVDS_E_3R -to LVDS_out[0]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_in[2]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_in[1]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_in[0]
+set_location_assignment PIN_G10 -to DAC[3].serialData
+set_location_assignment PIN_B10 -to DAC[3].serialClock
+set_location_assignment PIN_H11 -to DAC[3].load
+set_location_assignment PIN_E11 -to DAC[3].clear
+set_location_assignment PIN_AD9 -to calInputSel
+set_location_assignment PIN_C2 -to jcpll_ctrl.outputEnable
+set_location_assignment PIN_A2 -to jcpll_ctrl.testsync
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
