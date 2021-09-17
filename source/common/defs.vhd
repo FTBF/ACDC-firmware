@@ -129,11 +129,14 @@ package defs is
 		sys			:	std_logic;
 		x4				:	std_logic;
 		x8				:	std_logic;
+        local40     : std_logic;
+        local160    : std_logic;
 		usb         :	std_logic;  
 		timer			:	std_logic;
 		dacUpdate	:	std_logic;
 		wilkUpdate	:	std_logic;
-		altpllLock  :	std_logic;  
+		altpllLock  :	std_logic;
+  		localpllLock  :	std_logic;  
 	end record;
 	
 	------------------------------------
@@ -144,9 +147,7 @@ package defs is
 		valid		:	std_logic;
 	end record;
 	
-	
-	
-	
+		
 	------------------------------------
 	--	DAC
 	------------------------------------
@@ -401,11 +402,28 @@ package defs is
 		error	         :	std_logic;
 	end record;
 	
-	
-	
-	
-	
-	
+    -----------------------------------
+    --  rx parameter type
+    -----------------------------------
+    type RX_Param_type is record
+        trigSetup               : trigSetup_type;   
+        Vbias                   : natArray16;    
+        DLL_Vdd                 : natArray16;     
+        calEnable               : std_logic_vector(14 downto 0);   
+        calInputSel             : std_logic;
+        reset_request           : std_logic;   
+        DLL_resetRequest        : std_logic;   
+        PLL_resetRequest        : std_logic;   
+        PLL_ConfigRequest       : std_logic;   
+        PLL_ConfigReg           : std_logic_vector(31 downto 0);   
+        RO_target               : natArray;   
+        ramReadRequest          : std_logic;   
+        IDrequest               : std_logic;
+        ledFunction             : ledFunction_array;
+        ledTestFunction         : ledTestFunction_array;
+        ledTest_onTime          : ledTest_onTime_array;
+        testMode                : testMode_type;
+    end record;
 	
 	
 end defs;

@@ -60,21 +60,21 @@ BEGIN
 
 
 -- synchronize output
-SYNC0: pulseSync port map (clock.x4, clock.sys, dout_valid_z, dout_valid);
+SYNC0: pulseSync port map (clock.local160, clock.local40, dout_valid_z, dout_valid);
 
 -- synchronize word align reset
-SYNC1: pulseSync port map (clock.timer, clock.x4, timeoutError_z, wordAlignReset);
+SYNC1: pulseSync port map (clock.timer, clock.local160, timeoutError_z, wordAlignReset);
 
 -- synchronize timeout output
-SYNC2: pulseSync port map (clock.timer, clock.sys, timeoutError_z, timeoutError);
+SYNC2: pulseSync port map (clock.timer, clock.local40, timeoutError_z, timeoutError);
 
 
-process(clock.x4)
+process(clock.local160)
    variable i: natural range 0 to 255; -- byte index pos within the received frame
    variable v:  std_logic;	-- 'valid' flag
 	variable rxReg	: std_logic_vector(31 downto 0);	-- temporary storage of the rx bytes as they come in
 begin
-	if (rising_edge(clock.x4)) then	
+	if (rising_edge(clock.local160)) then	
     		
 		-- sync
 		reset_z <= reset;

@@ -53,26 +53,11 @@ package components is
 	component commandHandler is
 		port (
 			reset					: in  std_logic;
-			clock				    : in  std_logic;        
+			clock				    : in  std_logic;
+            clock_out			    : in  std_logic;
 			din		      	   		: in  std_logic_vector(31 downto 0);
 			din_valid				: in  std_logic;
-			trigSetup				: out trigSetup_type;    
-			Vbias					: out natArray16;   
-			DLL_Vdd					: out natArray16;    
-			calEnable				: out std_logic_vector(14 downto 0);   
-		   calInputSel          : out std_logic; 
-			reset_request			: out std_logic;   
-			DLL_resetRequest		: out std_logic;   
-			PLL_resetRequest		: out std_logic;   
-			PLL_ConfigRequest		: out std_logic;   
-			PLL_ConfigReg			: out std_logic_vector(31 downto 0);
-			RO_target				: out natArray; 
-			ramReadRequest			: out std_logic;   
-			IDrequest				: out std_logic;
-			ledFunction				: out ledFunction_array;
-			ledTestFunction			: out ledTestFunction_array;
-			ledTest_onTime			: out ledTest_onTime_array;
-			testMode				: out testMode_type
+            params                  : out   RX_Param_type
 			);
 	end component;
 	
@@ -207,7 +192,18 @@ package components is
 			locked		: OUT STD_LOGIC 
 			);
 	end component;
-	
+
+    component pll_localOsc IS
+	PORT
+	(
+		areset		: IN STD_LOGIC  := '0';
+		inclk0		: IN STD_LOGIC  := '0';
+		c0		: OUT STD_LOGIC ;
+		c1		: OUT STD_LOGIC ;
+		locked		: OUT STD_LOGIC 
+	);
+    END component;
+
 	
 	-- psec4 driver
 	component PSEC4_driver is
@@ -304,6 +300,15 @@ package components is
 			dout_valid  : out std_logic);
 		
 	end component;
+
+
+    component param_handshake_sync is
+      port (
+        src_clk     : in  std_logic;
+        src_params  : in  RX_Param_type;
+        dest_clk    : in  std_logic;
+        dest_params : out RX_Param_type);
+    end component param_handshake_sync;
 	
 	
 	-- rx command     

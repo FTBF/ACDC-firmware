@@ -102,42 +102,144 @@ begin
    end if;
 end process;
    
-   
-
- 
 dout_valid <= sync_latch_z; 
  
- 
- 
- 
-
-
 			
 end vhdl;
 
 
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use work.defs.all;
+use work.components.all;
+
+
+entity pulseSync2 is
+  Port(
+    src_clk   : in std_logic;
+    src_pulse : in std_logic;
+
+    dest_clk   : in std_logic;
+    dest_pulse : out std_logic);
+end pulseSync2;
+
+architecture vhdl of pulseSync2 is
+  signal src_pulse_1 : std_logic;
+  signal src_pulse_2 : std_logic;
+  signal src_pulse_3 : std_logic;
+  
+  signal sync_pulse_1 : std_logic;
+  signal sync_pulse_2 : std_logic;
+  
+  signal dest_pulse_1 : std_logic;  
+
+begin
+  
+  -- src clock domain edge detection
+  src_clk_domain : process(src_clk)
+  begin
+    if rising_Edge(src_clk) then
+      src_pulse_1 <= src_pulse;
+      src_pulse_2 <= (src_pulse and not src_pulse_1) xor src_pulse_2;
+    end if;
+  end process;
+
+  dest_clk_domain : process(dest_clk)
+  begin
+    if rising_Edge(dest_clk) then
+      sync_pulse_1 <= src_pulse_2;
+      sync_pulse_2 <= sync_pulse_1;
+
+      dest_pulse_1 <= sync_pulse_2;
+      dest_pulse <= dest_pulse_1 xor sync_pulse_2;
+    end if;
+  end process;
+    
+  
+end vhdl;
+  
 
 
 
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use work.defs.all;
+use work.components.all;
+use work.pulseSync2;
 
+entity param_handshake_sync is
+  port (
+    src_clk : in std_logic;
+    src_params : in RX_Param_type;
 
+    dest_clk : in std_logic;
+    dest_params : out RX_Param_type
+  );
+end entity param_handshake_sync;
 
+architecture vhdl of param_handshake_sync is
 
+  component pulseSync2 is
+    port (
+      src_clk    : in  std_logic;
+      src_pulse  : in  std_logic;
+      dest_clk   : in  std_logic;
+      dest_pulse : out std_logic);
+  end component pulseSync2;
 
+  signal src_params_latch : RX_Param_type;
+  signal src_latch        : std_logic;
+  signal src_latch_sync   : std_logic;
+  signal dest_latch       : std_logic;
+  signal dest_latch_sync  : std_logic;
 
+begin
 
+  src2dest_sync : pulseSync2
+  port map (
+    src_clk    => src_clk,
+    src_pulse  => src_latch,
+    dest_clk   => dest_clk,
+    dest_pulse => src_latch_sync
+  );
+  
+  dest2src_sync : pulseSync2
+  port map (
+    src_clk    => dest_clk,
+    src_pulse  => dest_latch,
+    dest_clk   => src_clk,
+    dest_pulse => dest_latch_sync
+  );
+  
+  src_clk_domain : process(src_clk)
+  begin
+    if rising_Edge(src_clk) then
+      if dest_latch_sync = '1' then
+        src_params_latch <= src_params;
+        src_latch <= '1';
+      else
+        src_params_latch <= src_params_latch;
+        src_latch <= '0';
+      end if;
+    end if;
+  end process;    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  dest_clk_domain : process(dest_clk)
+  begin
+    if rising_Edge(dest_clk) then
+      if src_latch_sync = '1' then
+        dest_params <= src_params_latch;
+        dest_latch <= '1';
+      else
+        dest_params <= dest_params;
+        dest_latch <= '0';
+      end if;
+    end if;    
+  end process;
+  
+end vhdl;  
+  

@@ -61,7 +61,10 @@ architecture vhdl of	ACDC_test is
 	signal	usbTx			   	: usbTx_type;
 	signal	usbRx			   	: usbRx_type;
 	
-	
+
+
+    -- rx parameters
+    signal  rxparams : RX_Param_type;
 	
 	
 	-- monitor
@@ -80,9 +83,6 @@ architecture vhdl of	ACDC_test is
 	signal	cableDetect : std_logic;
 	signal	phase_mon: std_logic;
 	signal	trig_armed: std_logic;
-	signal	ledFunction	: ledFunction_array;
-	signal	ledTestFunction: ledTestFunction_array;
-	signal	ledTest_onTime	: ledTest_onTime_array;
 	signal	ledMux: std_logic_vector(31 downto 0);
 	signal	validate_pass: std_logic;
 	signal	validate_fail: std_logic;
@@ -101,34 +101,28 @@ architecture vhdl of	ACDC_test is
 	signal	readAddress: natural;
 	signal	readData: wordArray;
 	signal	info			: info_type;
-	signal	Wlkn_fdbk_target: natArray;
+--	signal	Wlkn_fdbk_target: natArray;
 	signal	Wlkn_fdbk_current: natArray;
 	signal	VCDL_count: natArray;
 	signal	dacData			:	dacChain_data_array_type;
-	signal	Vbias				:	natArray16;
 	signal	pro_vdd			:  natArray16;
-	signal	dll_vdd			:	natArray16;		
 	
 	
 	
 	
 	-- control
 	signal 	trig_clear : std_logic;	
-	signal 	DLL_resetRequest	: std_logic;	
 	signal 	DLL_reset			: std_logic;	
 	signal   cmd					: cmd_type;
 	signal 	adcStart: std_logic;	 	
 	signal 	calSwitchEnable: std_logic_vector(14 downto 0);	
-	signal	IDrequest : std_logic;		-- request an ID type frame to be sent
 	signal	ramBufferFull	:	std_logic_vector(N-1 downto 0);		
-	signal	testMode			: testMode_type;
 	signal	psecDataStored : std_logic_vector(7 downto 0);
 	signal	transfer_enable: std_logic;
 	
 	
 	
 	-- trig
-	signal	trigSetup				: trigSetup_type;
 	signal	acc_trig					: std_logic;
 	signal	sma_trig					: std_logic;
 	signal	self_trig				: std_logic;
@@ -140,9 +134,6 @@ architecture vhdl of	ACDC_test is
 	
 	
 	-- new for PLL config
-	signal pll_resetRequest		: std_logic;	
-	signal pll_configRequest	: std_logic;
-	signal pll_configReg			: std_logic_vector(31 downto 0);  
 
 	
 	
@@ -179,15 +170,15 @@ begin
 	ledSetup(4,0) <= (input => jcpll_lock					, mode => ledMode.monostable	, onTime => 500, period => 0);
 	ledSetup(5,0) <= (input => selfTrig_mode				, mode => ledMode.monostable	, onTime => 500, period => 0);
 	ledSetup(6,0) <= (input => uartTx.valid 				, mode => ledMode.monostable	, onTime => 500, period => 0);
-	ledSetup(7,0) <= (input => dll_reset or trigSetup.resetReq, mode => ledMode.monostable, onTime => 500, period => 0);
+	ledSetup(7,0) <= (input => dll_reset or rxparams.trigSetup.resetReq, mode => ledMode.monostable, onTime => 500, period => 0);
 	ledSetup(8,0) <= (input => burstFlash and clock.altPllLock, mode => ledMode.direct, onTime => 0, period => 0);
 	
 	-- test function
 	LED_ON_OFF: for i in 0 to 8 generate
 		ledSetup(i,1) <= (input => '1', mode => ledMode.direct, onTime => 0,	period => 0);
 		ledSetup(i,2) <= (input => '0', mode => ledMode.direct, onTime => 0,	period => 0);
-		ledSetup(i,3) <= (input => ledMux(ledTestFunction(i)), mode => ledMode.direct, onTime => 0,	period => 0)
-		when (ledTest_onTime(i) <= 1) else (input => ledMux(ledTestFunction(i)), mode => ledMode.monostable, onTime => ledTest_onTime(i),	period => 0);
+		ledSetup(i,3) <= (input => ledMux(rxparams.ledTestFunction(i)), mode => ledMode.direct, onTime => 0,	period => 0)
+		when (rxparams.ledTest_onTime(i) <= 1) else (input => ledMux(rxparams.ledTestFunction(i)), mode => ledMode.monostable, onTime => rxparams.ledTest_onTime(i),	period => 0);
 	end generate;
 	
 	-- led test signal multiplexer
@@ -197,7 +188,7 @@ begin
 	ledMux(3) <= transfer_request;
 	ledMux(4) <= uartRx.valid;
 	ledMux(5) <= uartTx.valid;
-	ledMux(6) <= IDrequest;
+	ledMux(6) <= rxparams.IDrequest;
 	ledMux(7) <= uartTx.dataTransferDone;
 	ledMux(8) <= digitize_request;
 	ledMux(9) <= digitize_done;
@@ -211,7 +202,7 @@ begin
 	ledMux(17) <= rampDone(0);
 	ledMux(18) <= trig_clear;
 	ledMux(19) <= rampDone(0);
-	ledMux(20) <= dll_resetRequest;
+	ledMux(20) <= rxparams.dll_resetRequest;
 	ledMux(21) <= transfer_enable;	
 	ledMux(22) <= PSEC4_in(0).overflow;
 	ledMux(23) <= LVDS_in(0);
@@ -226,7 +217,7 @@ begin
 	
 	
 	
-	selfTrig_mode <= '1' when (trigSetup.mode >= 4 and trigSetup.mode <= 6) else '0';
+	selfTrig_mode <= '1' when (rxparams.trigSetup.mode >= 4 and rxparams.trigSetup.mode <= 6) else '0';
 	
 	PSECmonitorLed <= PSEC4_out(2).trigClear or (not PSEC4_out(2).DLLreset_n);
 	
@@ -282,9 +273,9 @@ begin
 	------------------------------------
 	
 	clockGen_map: ClockGenerator Port map(
-		pll_resetRequest	=> pll_resetRequest,
-		pll_configRequest => pll_configRequest,
-		pll_configReg	=>		pll_configReg,
+		pll_resetRequest	=> rxparams.pll_resetRequest,
+		pll_configRequest => rxparams.pll_configRequest,
+		pll_configReg	=>		rxparams.pll_configReg,
 		clockIn			=> clockIn,		
 		jcpll				=>	jcpll_ctrl,
 		clock				=> clock			-- the generated clocks for use by the rest of the firmware
@@ -320,7 +311,7 @@ begin
 		clockDivRatio => 8 
 		)
 	port map(
-		clock				=> clock.x4,  -- 160MHz clock for communications
+		clock				=> clock.local160,  -- 160MHz clock for communications
 		reset				=> reset.global,	-- global reset
 		txData			=> uartTx.byte,
 		txData_valid	=> uartTx.valid,	
@@ -351,28 +342,18 @@ begin
 	------------------------------------
 	--	COMMAND HANDLER
 	------------------------------------
-		cmd_handler_map: commandHandler port map (
+	cmd_handler_map: commandHandler port map (
 		reset				=> reset.global,
-		clock				=> clock.sys,     
+		clock				=> clock.local40,
+        clock_out           => clock.sys,     
 		din		      =>	cmd.word,	
 		din_valid		=> cmd.valid,
-		IDrequest		=> IDrequest,
-		trigSetup		=> trigSetup,
-		Vbias				=> Vbias,
-		DLL_Vdd			=> DLL_vdd,    
-		calEnable 		=> calEnable, 
-      calInputSel		=> calInputSel,
-		reset_request		=> reset.request,
-		DLL_resetRequest	=> dll_resetRequest, 
-		PLL_resetRequest	=> pll_resetRequest, 
-		PLL_ConfigRequest	=> pll_configRequest, 
-		PLL_ConfigReg			=> pll_ConfigReg, 			
-		RO_target			=> Wlkn_fdbk_target,
-		ledFunction			=> ledFunction,		-- determines one of 4 led modes: 0 normal; 1 on; 2 off; 3 test
-		ledTestFunction	=> ledTestFunction,	-- specifies the test signal number for when the led is in test mode
-		ledTest_onTime		=> ledTest_onTime,
-		testMode				=> testMode
-		);
+        params          => rxparams
+	);
+
+    calEnable <= rxparams.calEnable;
+    calInputSel <= rxparams.calInputSel;
+    reset.request <= rxparams.reset_request;
 	
 	------------------------------------
 	--	DATA HANDLER 
@@ -382,7 +363,7 @@ begin
 		reset					=> reset.global,
 		clock					=> clock,
 		info					=> info,
-		IDrequest				=> IDrequest,
+		IDrequest				=> rxparams.IDrequest,
 		readRequest				=> transfer_request,
 		uartTx_done				=> uartTx.dataTransferDone,
 		ramAddress           	=> readAddress,
@@ -394,8 +375,8 @@ begin
 		timeoutError  			=> dataHandler_timeoutError,
 		selfTrig_rateCount		=> selfTrig_rateCount,
 		trig_rateCount			=> trig_rateCount,			 
-		PLL_ConfigReg			=> pll_ConfigReg, 			
-		testMode				=> testMode
+		PLL_ConfigReg			=> rxparams.pll_ConfigReg, 			
+		testMode				=> rxparams.testMode
 		);
 	
 	------------------------------------
@@ -408,9 +389,9 @@ begin
 			for i in 0 to N-1 loop
 				info(i,0) <= x"BA11";
 				info(i,1) <= std_logic_vector(to_unsigned(Wlkn_fdbk_current(i),16));
-				info(i,2) <= std_logic_vector(to_unsigned(Wlkn_fdbk_target(i),16));
-				info(i,3) <= std_logic_vector(to_unsigned(vbias(i),16));
-				info(i,4) <= std_logic_vector(to_unsigned(trigSetup.selfTrig_threshold(i),16));
+				info(i,2) <= std_logic_vector(to_unsigned(rxparams.RO_target(i),16));
+				info(i,3) <= std_logic_vector(to_unsigned(rxparams.vbias(i),16));
+				info(i,4) <= std_logic_vector(to_unsigned(rxparams.trigSetup.selfTrig_threshold(i),16));
 				info(i,5) <= std_logic_vector(to_unsigned(pro_vdd(i),16));
 				info(i,6) <= trigInfo(0,i);
 				info(i,7) <= trigInfo(1,i);
@@ -435,7 +416,7 @@ begin
 				
 				--info(i,11) <= std_logic_vector(to_unsigned(vcdl_count(i),32))(15 downto 0);
 				--info(i,12) <= std_logic_vector(to_unsigned(vcdl_count(i),32))(31 downto 16);
-				info(i,13) <= std_logic_vector(to_unsigned(dll_vdd(i),16));
+				info(i,13) <= std_logic_vector(to_unsigned(rxparams.dll_vdd(i),16));
 			end loop;
 		end if;
 	end process;
@@ -452,7 +433,7 @@ begin
 	
 	-- global to all PSEC chips
 	PSEC4_freq_sel <= '0';
-	PSEC4_trigSign <= trigSetup.selfTrig_sign;
+	PSEC4_trigSign <= rxparams.trigSetup.selfTrig_sign;
 	
 	
 	-- driver for each PSEC chip
@@ -461,14 +442,14 @@ begin
 			clock					=>	clock,
 			reset					=> reset.global,
 			trig					=> trig_out,
-			trigSign				=> trigSetup.selfTrig_sign,
+			trigSign				=> rxparams.trigSetup.selfTrig_sign,
 			selftrig_clear		=> trig_clear,
 			digitize_request	=> digitize_request,
 			rampDone				=> rampDone(i),
 			adcReset				=> reset.global or uartTx.dataTransferDone,
 			PSEC4_in				=>	PSEC4_in(i),
 			DLL_reset			=> DLL_reset,
-			Wlkn_fdbk_target	=> Wlkn_fdbk_target(i),
+			Wlkn_fdbk_target	=> rxparams.RO_target(i),
 			PSEC4_out			=> PSEC4_out(i),
 			VCDL_count			=> VCDL_count(i),
 			DAC_value			=> pro_vdd(i),
@@ -523,14 +504,14 @@ begin
 			device := 0;
 			for i in 0 to N-1 loop	-- for each PSEC4 chip			
 				--
-				dacData(chain)(device)(0) <= Vbias(i);
-				dacData(chain)(device)(1) <= trigSetup.selfTrig_threshold(i);
-				dacData(chain)(device)(2) <= trigSetup.selfTrig_threshold(i);
+				dacData(chain)(device)(0) <= rxparams.Vbias(i);
+				dacData(chain)(device)(1) <= rxparams.trigSetup.selfTrig_threshold(i);
+				dacData(chain)(device)(2) <= rxparams.trigSetup.selfTrig_threshold(i);
 				dacData(chain)(device)(3) <= pro_vdd(i);
 				dacData(chain)(device)(4) <= 4095 - pro_vdd(i);
-				dacData(chain)(device)(5) <= 4095 - dll_vdd(i);
-				dacData(chain)(device)(6) <= dll_vdd(i);
-				dacData(chain)(device)(7) <= trigSetup.selfTrig_threshold(i);
+				dacData(chain)(device)(5) <= 4095 - rxparams.dll_vdd(i);
+				dacData(chain)(device)(6) <= rxparams.dll_vdd(i);
+				dacData(chain)(device)(7) <= rxparams.trigSetup.selfTrig_threshold(i);
 				
 				-- increment counters
 				device := device + 1;		
@@ -542,22 +523,22 @@ begin
 				
 			end loop;
 			
-			dacData(3)(0)(0) <= trigSetup.selfTrig_threshold(0);
-			dacData(3)(0)(1) <= trigSetup.selfTrig_threshold(0);
-			dacData(3)(0)(2) <= trigSetup.selfTrig_threshold(0);
-			dacData(3)(0)(3) <= trigSetup.selfTrig_threshold(1);
-			dacData(3)(0)(4) <= trigSetup.selfTrig_threshold(1);
-			dacData(3)(0)(5) <= trigSetup.selfTrig_threshold(1);
-			dacData(3)(0)(6) <= trigSetup.selfTrig_threshold(2);
+			dacData(3)(0)(0) <= rxparams.trigSetup.selfTrig_threshold(0);
+			dacData(3)(0)(1) <= rxparams.trigSetup.selfTrig_threshold(0);
+			dacData(3)(0)(2) <= rxparams.trigSetup.selfTrig_threshold(0);
+			dacData(3)(0)(3) <= rxparams.trigSetup.selfTrig_threshold(1);
+			dacData(3)(0)(4) <= rxparams.trigSetup.selfTrig_threshold(1);
+			dacData(3)(0)(5) <= rxparams.trigSetup.selfTrig_threshold(1);
+			dacData(3)(0)(6) <= rxparams.trigSetup.selfTrig_threshold(2);
 			dacData(3)(0)(7) <= 0;
-			dacData(3)(1)(0) <= trigSetup.selfTrig_threshold(3);
-			dacData(3)(1)(1) <= trigSetup.selfTrig_threshold(3);
-			dacData(3)(1)(2) <= trigSetup.selfTrig_threshold(3);
-			dacData(3)(1)(3) <= trigSetup.selfTrig_threshold(4);
-			dacData(3)(1)(4) <= trigSetup.selfTrig_threshold(4);
-			dacData(3)(1)(5) <= trigSetup.selfTrig_threshold(4);
-			dacData(3)(1)(6) <= trigSetup.selfTrig_threshold(2);
-			dacData(3)(1)(7) <= trigSetup.selfTrig_threshold(2);
+			dacData(3)(1)(0) <= rxparams.trigSetup.selfTrig_threshold(3);
+			dacData(3)(1)(1) <= rxparams.trigSetup.selfTrig_threshold(3);
+			dacData(3)(1)(2) <= rxparams.trigSetup.selfTrig_threshold(3);
+			dacData(3)(1)(3) <= rxparams.trigSetup.selfTrig_threshold(4);
+			dacData(3)(1)(4) <= rxparams.trigSetup.selfTrig_threshold(4);
+			dacData(3)(1)(5) <= rxparams.trigSetup.selfTrig_threshold(4);
+			dacData(3)(1)(6) <= rxparams.trigSetup.selfTrig_threshold(2);
+			dacData(3)(1)(7) <= rxparams.trigSetup.selfTrig_threshold(2);
 			
 		end if;
 	end process;
@@ -582,8 +563,8 @@ begin
 		clock						=> clock,
 		reset						=> reset.global, 
 		systemTime				=> systemTime,
-		testMode					=> testMode,
-		trigSetup				=> trigSetup,
+		testMode					=> rxparams.testMode,
+		trigSetup				=> rxparams.trigSetup,
 		trigInfo					=> trigInfo,
 		acc_trig					=> acc_trig,
 		sma_trig					=> sma_trigIn,
@@ -619,8 +600,8 @@ begin
 		clock						=> clock,
 		reset						=> reset.global,
 		PSEC4_in					=>	PSEC4_in,
-		testMode					=> testMode,
-		trigSetup				=> trigSetup,
+		testMode					=> rxparams.testMode,
+		trigSetup				=> rxparams.trigSetup,
 		trig_out					=> self_trig,
 		rateCount				=> selfTrig_rateCount
 		);
@@ -639,7 +620,7 @@ begin
 		variable r: std_logic;
 	begin
 		if (rising_edge(clock.sys)) then 						
-			if (reset.global = '1' or DLL_resetRequest = '1') then t := 0; end if;		-- restart counter if new reset request	
+			if (reset.global = '1' or rxparams.DLL_resetRequest = '1') then t := 0; end if;		-- restart counter if new reset request	
 			if (t >= 40000000) then r := '0'; else r := '1'; t := t + 1; end if;
 			DLL_reset <= r; 			
 		end if;
@@ -657,7 +638,7 @@ begin
 	-- 64 bit counter running at 320MHz
 	SYS_TIME_GEN: systemTime_driver port map(
 		clock		=> clock,
-		reset		=> reset.global or trigSetup.eventAndTime_reset,
+		reset		=> reset.global or rxparams.trigSetup.eventAndTime_reset,
 		phase_mon => phase_mon,
 		q			=> systemTime
 		);

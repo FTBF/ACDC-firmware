@@ -17,6 +17,7 @@ library IEEE;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use work.components.pll;
+use work.components.pll_localosc;
 use work.components.pulseSync;
 use work.defs.all;
 
@@ -73,14 +74,22 @@ begin
 		);     
 	
 	
-	
+	-- local clocks
+    pll_localOsc_inst : pll_localOsc PORT MAP (
+		areset	 => '0',
+		inclk0	 => clockIn.localOsc,
+		c0	 => clock.local40,
+		c1	 => clock.local160,
+		locked	 => clock.localpllLock
+	);
+
 	
 	
 	---------------------------------------
 	-- TIMER CLOCK GENERATOR
 	---------------------------------------
 	-- a general purpose 1ms clock for use in timers, delays, led flashers, timeouts etc. Not dependent on the jitter cleaner being set up
-	CLK_DIV_TIMER: process(clockIn.localOsc)
+	CLK_DIV_TIMER: process(clock.local40)
 		variable t: natural range 0 to 262143;
 	begin
 		if (rising_edge(clockIn.localOsc)) then
@@ -138,7 +147,7 @@ begin
 	---------------------------------------
 	-- JITTER CLEANER PROGRAMMING CLOCK GENERATOR
 	---------------------------------------
-	CLK_DIV_SERIAL: process(clockIn.localOsc)		
+	CLK_DIV_SERIAL: process(clock.local40)		
 		variable t: natural range 0 to 65535;
 	begin
 		if (rising_edge(clockIn.localOsc)) then
