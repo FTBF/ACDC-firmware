@@ -36,7 +36,7 @@ architecture vhdl of systemTime_driver is
 
 	
 	
-	signal	phase				: natural range 0 to 7;
+	signal	phase				: natural range 0 to 15;
 	signal	sysClk			: std_logic;
 	signal	sysClk_z			: std_logic;
 	signal	sys_time_reset	: std_logic;

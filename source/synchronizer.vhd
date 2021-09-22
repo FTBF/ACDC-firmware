@@ -118,17 +118,18 @@ use work.components.all;
 
 entity pulseSync2 is
   Port(
-    src_clk   : in std_logic;
-    src_pulse : in std_logic;
+    src_clk     : in std_logic;
+    src_pulse   : in std_logic;
+    src_aresetn : in std_logic;
 
-    dest_clk   : in std_logic;
-    dest_pulse : out std_logic);
+    dest_clk     : in std_logic;
+    dest_pulse   : out std_logic;
+    dest_aresetn : in std_logic);
 end pulseSync2;
 
 architecture vhdl of pulseSync2 is
   signal src_pulse_1 : std_logic;
   signal src_pulse_2 : std_logic;
-  signal src_pulse_3 : std_logic;
   
   signal sync_pulse_1 : std_logic;
   signal sync_pulse_2 : std_logic;
@@ -138,25 +139,38 @@ architecture vhdl of pulseSync2 is
 begin
   
   -- src clock domain edge detection
-  src_clk_domain : process(src_clk)
+  src_clk_domain : process(src_clk, src_aresetn)
   begin
-    if rising_Edge(src_clk) then
-      src_pulse_1 <= src_pulse;
-      src_pulse_2 <= (src_pulse and not src_pulse_1) xor src_pulse_2;
+    if src_aresetn = '0' then
+      src_pulse_1 <= '0';
+      src_pulse_2 <= '0';
+    else
+      if rising_Edge(src_clk) then
+        src_pulse_1 <= src_pulse;
+        src_pulse_2 <= (src_pulse and not src_pulse_1) xor src_pulse_2;
+      end if;
     end if;
   end process;
 
   dest_clk_domain : process(dest_clk)
   begin
-    if rising_Edge(dest_clk) then
-      sync_pulse_1 <= src_pulse_2;
-      sync_pulse_2 <= sync_pulse_1;
+    if dest_aresetn = '0' then
+      dest_pulse_1 <= '0';
+      dest_pulse <= '0';
 
-      dest_pulse_1 <= sync_pulse_2;
-      dest_pulse <= dest_pulse_1 xor sync_pulse_2;
+      sync_pulse_1 <= '0';
+      sync_pulse_2 <= '0';
+    else
+      if rising_Edge(dest_clk) then
+        sync_pulse_1 <= src_pulse_2;
+        sync_pulse_2 <= sync_pulse_1;
+
+        dest_pulse_1 <= sync_pulse_2;
+        dest_pulse <= dest_pulse_1 xor sync_pulse_2;
+      end if;
     end if;
   end process;
-    
+  
   
 end vhdl;
   
@@ -174,10 +188,12 @@ use work.pulseSync2;
 entity param_handshake_sync is
   port (
     src_clk : in std_logic;
-    src_params : in RX_Param_type;
+    src_params : in RX_Param_jcpll_type;
+    src_aresetn : in std_logic;
 
     dest_clk : in std_logic;
-    dest_params : out RX_Param_type
+    dest_params : out RX_Param_jcpll_type;
+    dest_aresetn : in std_logic
   );
 end entity param_handshake_sync;
 
@@ -185,13 +201,15 @@ architecture vhdl of param_handshake_sync is
 
   component pulseSync2 is
     port (
-      src_clk    : in  std_logic;
-      src_pulse  : in  std_logic;
-      dest_clk   : in  std_logic;
-      dest_pulse : out std_logic);
+      src_clk      : in  std_logic;
+      src_pulse    : in  std_logic;
+      src_aresetn  : in  std_logic;
+      dest_clk     : in  std_logic;
+      dest_pulse   : out std_logic;
+      dest_aresetn : in  std_logic);
   end component pulseSync2;
 
-  signal src_params_latch : RX_Param_type;
+  signal src_params_latch : RX_Param_jcpll_type;
   signal src_latch        : std_logic;
   signal src_latch_sync   : std_logic;
   signal dest_latch       : std_logic;
@@ -201,18 +219,22 @@ begin
 
   src2dest_sync : pulseSync2
   port map (
-    src_clk    => src_clk,
-    src_pulse  => src_latch,
-    dest_clk   => dest_clk,
-    dest_pulse => src_latch_sync
+    src_clk      => src_clk,
+    src_pulse    => src_latch,
+    src_aresetn  => src_aresetn,
+    dest_clk     => dest_clk,
+    dest_pulse   => src_latch_sync,
+    dest_aresetn => dest_aresetn
   );
   
   dest2src_sync : pulseSync2
   port map (
-    src_clk    => dest_clk,
-    src_pulse  => dest_latch,
-    dest_clk   => src_clk,
-    dest_pulse => dest_latch_sync
+    src_clk      => dest_clk,
+    src_pulse    => dest_latch,
+    src_aresetn  => src_aresetn,
+    dest_clk     => src_clk,
+    dest_pulse   => dest_latch_sync,
+    dest_aresetn => dest_aresetn
   );
   
   src_clk_domain : process(src_clk)
@@ -228,17 +250,21 @@ begin
     end if;
   end process;    
 
-  dest_clk_domain : process(dest_clk)
+  dest_clk_domain : process(dest_clk, dest_aresetn)
   begin
-    if rising_Edge(dest_clk) then
-      if src_latch_sync = '1' then
-        dest_params <= src_params_latch;
-        dest_latch <= '1';
-      else
-        dest_params <= dest_params;
-        dest_latch <= '0';
+    if dest_aresetn = '0' then
+      dest_latch <= '1';
+    else
+      if rising_Edge(dest_clk) then
+        if src_latch_sync = '1' then
+          dest_params <= src_params_latch;
+          dest_latch <= '1';
+        else
+          dest_params <= dest_params;
+          dest_latch <= '0';
+        end if;
       end if;
-    end if;    
+    end if;
   end process;
   
 end vhdl;  

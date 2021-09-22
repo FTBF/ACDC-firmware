@@ -31,7 +31,7 @@ entity ACDC_test is
 		PSEC4_out				: buffer PSEC4_out_array_type;
 		PSEC4_freq_sel			: out std_logic;
 		PSEC4_trigSign			: out std_logic;
-		calEnable				: inout std_logic_vector(14 downto 0);
+		calEnable				: out std_logic_vector(14 downto 0);
 		calInputSel          : out std_logic;
 		--USB_in					: in USB_in_type;
 		--USB_out					: out USB_out_type;
@@ -64,7 +64,8 @@ architecture vhdl of	ACDC_test is
 
 
     -- rx parameters
-    signal  rxparams : RX_Param_type;
+    signal  rxparams : RX_Param_jcpll_type;
+    signal  rxparams_loc : RX_Param_local_type;
 	
 	
 	-- monitor
@@ -133,7 +134,8 @@ architecture vhdl of	ACDC_test is
 	signal	trig_out					: std_logic;
 	
 	
-	-- new for PLL config
+	-- reset sync
+    signal reset_local : std_logic; 
 
 	
 	
@@ -177,8 +179,8 @@ begin
 	LED_ON_OFF: for i in 0 to 8 generate
 		ledSetup(i,1) <= (input => '1', mode => ledMode.direct, onTime => 0,	period => 0);
 		ledSetup(i,2) <= (input => '0', mode => ledMode.direct, onTime => 0,	period => 0);
-		ledSetup(i,3) <= (input => ledMux(rxparams.ledTestFunction(i)), mode => ledMode.direct, onTime => 0,	period => 0)
-		when (rxparams.ledTest_onTime(i) <= 1) else (input => ledMux(rxparams.ledTestFunction(i)), mode => ledMode.monostable, onTime => rxparams.ledTest_onTime(i),	period => 0);
+		ledSetup(i,3) <= (input => ledMux(rxparams_loc.ledTestFunction(i)), mode => ledMode.direct, onTime => 0,	period => 0)
+		when (rxparams_loc.ledTest_onTime(i) <= 1) else (input => ledMux(rxparams_loc.ledTestFunction(i)), mode => ledMode.monostable, onTime => rxparams_loc.ledTest_onTime(i),	period => 0);
 	end generate;
 	
 	-- led test signal multiplexer
@@ -188,7 +190,7 @@ begin
 	ledMux(3) <= transfer_request;
 	ledMux(4) <= uartRx.valid;
 	ledMux(5) <= uartTx.valid;
-	ledMux(6) <= rxparams.IDrequest;
+	ledMux(6) <= rxparams_loc.IDrequest;
 	ledMux(7) <= uartTx.dataTransferDone;
 	ledMux(8) <= digitize_request;
 	ledMux(9) <= digitize_done;
@@ -254,28 +256,38 @@ begin
 	------------------------------------
 	--	RESET
 	------------------------------------
-	RESET_PROCESS : process(clock.sys)
+	RESET_PROCESS : process(clock.local40)
 		variable t: natural := 0;		-- elaspsed time counter
 		variable r: std_logic;
 	begin
-		if (rising_edge(clock.sys)) then 				
-			if (reset.request = '1') then t := 0; end if;   -- restart counter if new reset request					 										
+		if (rising_edge(clock.local40)) then 				
+			if (reset.request = '1' or clock.localpllLock = '0') then t := 0; end if;   -- restart counter if new reset request					 										
 			if (t >= 40000000) then r := '0'; else r := '1'; t := t + 1; end if;
-			reset.global <= r;
+			reset_local <= r;
 		end if;
 	end process;
-	
-	
-	
+
+    -- reset synchronizer 
+	RESSET_SYNC : process(clock.sys)
+      variable reset_sync_1 : std_logic;
+      variable reset_sync_2 : std_logic;
+    begin
+      if rising_edge(clock.sys) then
+        reset_sync_1 := reset_local;
+        reset_sync_2 := reset_sync_1;
+        reset.global <= reset_sync_2 or clock.altpllLock;
+      end if;
+    end process;
+
 	
 	------------------------------------
 	--	CLOCKS
 	------------------------------------
 	
 	clockGen_map: ClockGenerator Port map(
-		pll_resetRequest	=> rxparams.pll_resetRequest,
-		pll_configRequest => rxparams.pll_configRequest,
-		pll_configReg	=>		rxparams.pll_configReg,
+		pll_resetRequest	=> rxparams_loc.pll_resetRequest,
+		pll_configRequest => rxparams_loc.pll_configRequest,
+		pll_configReg	=>		rxparams_loc.pll_configReg,
 		clockIn			=> clockIn,		
 		jcpll				=>	jcpll_ctrl,
 		clock				=> clock			-- the generated clocks for use by the rest of the firmware
@@ -348,12 +360,13 @@ begin
         clock_out           => clock.sys,     
 		din		      =>	cmd.word,	
 		din_valid		=> cmd.valid,
-        params          => rxparams
+        params          => rxparams,
+        params_local    => rxparams_loc
 	);
 
-    calEnable <= rxparams.calEnable;
-    calInputSel <= rxparams.calInputSel;
-    reset.request <= rxparams.reset_request;
+    calEnable <= rxparams_loc.calEnable;
+    calInputSel <= rxparams_loc.calInputSel;
+    reset.request <= rxparams_loc.reset_request;
 	
 	------------------------------------
 	--	DATA HANDLER 
@@ -363,7 +376,7 @@ begin
 		reset					=> reset.global,
 		clock					=> clock,
 		info					=> info,
-		IDrequest				=> rxparams.IDrequest,
+		IDrequest				=> rxparams_loc.IDrequest,
 		readRequest				=> transfer_request,
 		uartTx_done				=> uartTx.dataTransferDone,
 		ramAddress           	=> readAddress,
@@ -375,7 +388,7 @@ begin
 		timeoutError  			=> dataHandler_timeoutError,
 		selfTrig_rateCount		=> selfTrig_rateCount,
 		trig_rateCount			=> trig_rateCount,			 
-		PLL_ConfigReg			=> rxparams.pll_ConfigReg, 			
+		PLL_ConfigReg			=> rxparams_loc.pll_ConfigReg, 			
 		testMode				=> rxparams.testMode
 		);
 	

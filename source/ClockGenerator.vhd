@@ -150,7 +150,7 @@ begin
 	CLK_DIV_SERIAL: process(clock.local40)		
 		variable t: natural range 0 to 65535;
 	begin
-		if (rising_edge(clockIn.localOsc)) then
+		if (rising_edge(clock.local40)) then
 			t := t + 1;
 			if (t >= SERIAL_CLK_DIV_RATIO) then t := 0; end if;
 			if (t >= SERIAL_CLK_DIV_RATIO /2) then serialClock <= '1'; else serialClock <= '0'; end if;

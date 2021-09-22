@@ -25,21 +25,26 @@ entity commandHandler is
         clock_out			    : in	std_logic;
 		din			      	   	: in    std_logic_vector(31 downto 0);
 		din_valid				: in    std_logic;
-        params                  : out   RX_Param_type
+        params                  : out   RX_Param_jcpll_type;
+        params_local            : out   RX_Param_local_type
 		);
 end commandHandler;
 
 architecture vhdl of commandHandler is
-	signal params_z : RX_Param_type;
+  signal params_z : RX_Param_jcpll_type;
+  signal resetn : std_logic;
 begin	
 	
-    -- CDC for output parameters
+    -- CDC for sys clk output parameters
+    resetn <= not reset;
     param_handshake_sync_1: entity work.param_handshake_sync
       port map (
-        src_clk     => clock,
-        src_params  => params_z,
-        dest_clk    => clock_out,
-        dest_params => params
+        src_clk      => clock,
+        src_params   => params_z,
+        src_aresetn  => resetn,
+        dest_clk     => clock_out,
+        dest_params  => params,
+        dest_aresetn => resetn
       );
 
 
@@ -75,12 +80,12 @@ begin
 						params_z.RO_Target(i)		<= 16#CA00#;
 					end loop;							
 					params_z.DLL_resetRequest <= '0';
-					params_z.PLL_ConfigRequest <= '0';		 
-					params_z.PLL_resetRequest <= '0';	  
-					params_z.reset_request <= '0';
+					params_local.PLL_ConfigRequest <= '0';		 
+					params_local.PLL_resetRequest <= '0';	  
+					params_local.reset_request <= '0';
 					
-					params_z.calEnable					<= (others => '0'); 
-					params_z.calInputSel             <= '0';
+					params_local.calEnable					<= (others => '0'); 
+					params_local.calInputSel             <= '0';
 					params_z.testMode.sequencedPsecData 	<= '0';
 					params_z.testMode.trig_noTransfer 	<= '0';	
 
@@ -97,9 +102,9 @@ begin
 				
 				-- Clear single-pulse signals
 				params_z.DLL_resetRequest	<= '0';
-				params_z.reset_request   	<= '0';
-				params_z.ramReadRequest 	<= '0';
-				params_z.IDrequest			<= '0';
+				params_local.reset_request   	<= '0';
+				params_local.ramReadRequest 	<= '0';
+				params_local.IDrequest			<= '0';
 				params_z.trigSetup.eventAndTime_reset <= '0';
 				params_z.trigSetup.transferEnableReq <= '0';
 				params_z.trigSetup.transferDisableReq <= '0';
@@ -208,8 +213,8 @@ begin
 						
 					when x"C" =>	-- calibration		
 						case cmdOption is
-							when x"0" => params_z.calEnable(14 downto 0) <= din(14 downto 0);
-							when x"1" => params_z.calInputSel <= din(0);
+							when x"0" => params_local.calEnable(14 downto 0) <= din(14 downto 0);
+							when x"1" => params_local.calInputSel <= din(0);
 							when others => null;
 						end case;
 						
@@ -217,7 +222,7 @@ begin
 					when x"D" =>	-- data 
 						
 						case cmdOption is
-							when x"0" => params_z.IDrequest <= '1';		-- request to send an ID data frame							
+							when x"0" => params_local.IDrequest <= '1';		-- request to send an ID data frame							
 							when others => null;
 						end case;
 					
@@ -227,11 +232,11 @@ begin
 							
 							-- set the test function number and test on-time option
 							when x"8" => 
-								params_z.ledTestFunction(opt2) <= to_integer(unsigned(din(7 downto 0)));							
+								params_local.ledTestFunction(opt2) <= to_integer(unsigned(din(7 downto 0)));							
 								if (din(11) = '1') then 
-									params_z.ledTest_onTime(opt2) <= 500; 
+									params_local.ledTest_onTime(opt2) <= 500; 
 								else 
-									params_z.ledTest_onTime(opt2) <= 1;
+									params_local.ledTest_onTime(opt2) <= 1;
 								end if;
 								
 								-- set the led function
@@ -245,7 +250,7 @@ begin
 								
 								x := 0;
 								for i in 0 to 8 loop
-									params_z.ledFunction(i) <= to_integer(unsigned(din(x+1 downto x)));
+									params_local.ledFunction(i) <= to_integer(unsigned(din(x+1 downto x)));
 									x := x + 2;
 								end loop;
 							
@@ -265,15 +270,15 @@ begin
 								
 							when x"1" => 
 								params_z.DLL_resetRequest <= '0';
-								params_z.PLL_ConfigRequest <= '0';		 
-								--params_z.PLL_resetRequest <= '0';	  
-								params_z.reset_request <= '0';
+								params_local.PLL_ConfigRequest <= '0';		 
+								--params_local.PLL_resetRequest <= '0';	  
+								params_local.reset_request <= '0';
 							when x"2" => params_z.DLL_resetRequest <= '1';
-							when x"3" => params_z.PLL_ConfigReg(15 downto 0) <= cmdLongVal;
-							when x"4" => params_z.PLL_ConfigReg(31 downto 16) <= cmdLongVal;
-							when x"5" => params_z.PLL_ConfigRequest <= '1';
-							--when x"7" => params_z.PLL_resetRequest <= '1';
-							when x"A" => params_z.reset_request <= '1';	-- global reset 
+							when x"3" => params_local.PLL_ConfigReg(15 downto 0) <= cmdLongVal;
+							when x"4" => params_local.PLL_ConfigReg(31 downto 16) <= cmdLongVal;
+							when x"5" => params_local.PLL_ConfigRequest <= '1';
+							--when x"7" => params_local.PLL_resetRequest <= '1';
+							when x"A" => params_local.reset_request <= '1';	-- global reset 
 							when others => null;
 							
 						end case;		

@@ -57,7 +57,8 @@ package components is
             clock_out			    : in  std_logic;
 			din		      	   		: in  std_logic_vector(31 downto 0);
 			din_valid				: in  std_logic;
-            params                  : out   RX_Param_type
+            params                  : out   RX_Param_jcpll_type;
+            params_local            : out   RX_Param_local_type
 			);
 	end component;
 	
@@ -304,12 +305,14 @@ package components is
 
     component param_handshake_sync is
       port (
-        src_clk     : in  std_logic;
-        src_params  : in  RX_Param_type;
-        dest_clk    : in  std_logic;
-        dest_params : out RX_Param_type);
+        src_clk      : in  std_logic;
+        src_params   : in  RX_Param_jcpll_type;
+        src_aresetn  : in  std_logic;
+        dest_clk     : in  std_logic;
+        dest_params  : out RX_Param_jcpll_type;
+        dest_aresetn : in  std_logic);
     end component param_handshake_sync;
-	
+
 	
 	-- rx command     
 	component rxCommand IS 

@@ -23,7 +23,7 @@ entity dataBuffer is
 	port(	
 
 		PSEC4_in : in	PSEC4_in_type;		
-		channel :  OUT  natural range 0 to 7;
+		channel :  OUT  natural range 0 to 7 := 1;
 		Token :  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0);	
 		blockSelect : out STD_LOGIC_VECTOR(2 DOWNTO 0);	
 		readClock: out std_logic;	
@@ -125,7 +125,7 @@ begin
 			when IDLE =>
 
 				Token	<= "00";
-				channel <= 0;
+				channel <= 1;
 				readClock <= '0';
 				writeEnable	<= '0';
 				blockSel  	<= 5; -- clears ASIC token
