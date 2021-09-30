@@ -262,7 +262,7 @@ begin
 	begin
 		if (rising_edge(clock.local40)) then 				
 			if (reset.request = '1' or clock.localpllLock = '0') then t := 0; end if;   -- restart counter if new reset request					 										
-			if (t >= 40000000) then r := '0'; else r := '1'; t := t + 1; end if;
+			if (t >= 400) then r := '0'; else r := '1'; t := t + 1; end if;
 			reset_local <= r;
 		end if;
 	end process;
@@ -275,7 +275,7 @@ begin
       if rising_edge(clock.sys) then
         reset_sync_1 := reset_local;
         reset_sync_2 := reset_sync_1;
-        reset.global <= reset_sync_2 or clock.altpllLock;
+        reset.global <= reset_sync_2;
       end if;
     end process;
 
@@ -304,7 +304,7 @@ begin
 	LVDS_out(0) <=	uartTx.serial;	--  serial comms tx
 	LVDS_out(1) <=	'0';	-- not used
 	LVDS_out(2) <=	'0';	-- not used
-	LVDS_out(3) <=	'0';	-- not used
+	LVDS_out(3) <=	clock.sys;	-- not used
 	
 	-- in
 	uartRx.serial 	<= LVDS_in(0);	--  serial comms rx
@@ -320,11 +320,11 @@ begin
 	uart_map : uart
 	GENERIC map (
 		dataLen => 8, 
-		clockDivRatio => 8 
+		clockDivRatio => 16
 		)
 	port map(
 		clock				=> clock.local160,  -- 160MHz clock for communications
-		reset				=> reset.global,	-- global reset
+		reset				=> reset_local,	-- local clock reset
 		txData			=> uartTx.byte,
 		txData_valid	=> uartTx.valid,	
 		txData_ack		=> uartTx.dataAck,
@@ -343,7 +343,7 @@ begin
 	-- receives a command word from the ACC
 		rx_cmd_map: rxCommand PORT map
 		(
-		reset 			=> reset.global,
+		reset 			=> reset_local,
 		clock 			=> clock,
 		din 				=> uartRx.byte,
 		din_valid		=> uartRx.valid,
@@ -355,7 +355,7 @@ begin
 	--	COMMAND HANDLER
 	------------------------------------
 	cmd_handler_map: commandHandler port map (
-		reset				=> reset.global,
+		reset				=> reset_local,
 		clock				=> clock.local40,
         clock_out           => clock.sys,     
 		din		      =>	cmd.word,	
@@ -366,14 +366,21 @@ begin
 
     calEnable <= rxparams_loc.calEnable;
     calInputSel <= rxparams_loc.calInputSel;
-    reset.request <= rxparams_loc.reset_request;
+    reset_initialization : process(all)
+    begin
+      if clock.localpllLock = '0' then
+        reset.request <= '1';
+      else
+        reset.request <= rxparams_loc.reset_request;
+      end if;
+    end process;
 	
 	------------------------------------
 	--	DATA HANDLER 
 	------------------------------------
 	-- transmits the contents of the ram buffers plus other info over the uart
 		dataHandler_map: dataHandler port map (
-		reset					=> reset.global,
+		reset					=> reset_local,
 		clock					=> clock,
 		info					=> info,
 		IDrequest				=> rxparams_loc.IDrequest,

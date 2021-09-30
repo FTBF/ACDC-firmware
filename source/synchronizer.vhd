@@ -36,9 +36,9 @@ architecture vhdl of pulseSync is
 	
 	
    
-   signal sync_latch : std_logic;
-   signal sync_latch_z : std_logic;
-   signal sync_reset : std_logic;
+   signal sync_latch : std_logic := '0'; -- initial values for sim
+   signal sync_latch_z : std_logic := '0'; -- initial values for sim
+   signal sync_reset : std_logic := '0'; -- initial values for sim
    signal valid_in_z : std_logic;
    
    

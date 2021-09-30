@@ -92,7 +92,7 @@ begin
 	CLK_DIV_TIMER: process(clock.local40)
 		variable t: natural range 0 to 262143;
 	begin
-		if (rising_edge(clockIn.localOsc)) then
+		if (rising_edge(clock.local40)) then
 			t := t + 1;
 			if (t >= TIMER_CLK_DIV_RATIO) then t := 0; end if;
 			if (t >= TIMER_CLK_DIV_RATIO /2) then clock.timer <= '1'; else clock.timer <= '0'; end if;
@@ -185,6 +185,7 @@ begin
 			if (t < 4) then --for simulation
 				jcpll.SPI_latchEnable <= '1';
 				jcpll.powerDown <= '0';		-- active low
+                jcpll.SPI_MOSI <= '1';
 				--jcpll.pllSync <= '0';
 				dataSel := 0;
 				state	:= PWR_UP;		

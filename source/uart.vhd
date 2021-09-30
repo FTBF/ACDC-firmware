@@ -149,79 +149,89 @@ begin
 	
 	
 	RX_PROCESS: process(clock)
-		variable bitsDone: natural range 0 to 255;	-- the range specifier keeps the bit width small which helps to keep it fast
-		variable samplesDone: natural range 0 to 255;
-		variable sum: natural range 0 to 255;				-- the running total (per bit) of how many samples were logic 1 
-		variable t: natural range 0 to 255;				-- clock cycle number since the start of each bit. Cycles from 0 to (clockDivRatio - 1) during each bit period 
-		variable rxReg: std_logic_vector(dataLen - 1 downto 0);
-		variable bitValue: std_logic;
-		variable err: std_logic;
+      variable bitsDone: natural range 0 to 255;	-- the range specifier keeps the bit width small which helps to keep it fast
+      variable samplesDone: natural range 0 to 255;
+      variable sum: natural range 0 to 255;				-- the running total (per bit) of how many samples were logic 1 
+      variable t: natural range 0 to 255;				-- clock cycle number since the start of each bit. Cycles from 0 to (clockDivRatio - 1) during each bit period 
+      variable rxReg: std_logic_vector(dataLen - 1 downto 0);
+      variable bitValue: std_logic;
+      variable err: std_logic;
 	begin
-		if (rising_edge(clock)) then
-			rxIn_z <= rxIn_z(2 downto 0) & rxIn;	-- delayed and synced versions of the rx input	
-			
-			if (reset = '1') then
-				
-				rxData_valid <= '0';
-				rx_state <= IDLE;
-				rxError <= '0';
-						
-			else
-				
-				case rx_state is			
-					when IDLE => 
-						
-						rxError <= '0';
-						rxData_valid <= '0';
-						if (rxIn_z(2 downto 0) = "100") then		-- start bit edge detect (filtered)
-							t := 1;		-- start on clock 1 as clock 0 was the rx_in_z(0) value already verified as 0 (the start flag). rx_in_z(0) is the data used for processing
-							err := '0';
-							bitsDone := 0;
-							samplesDone := 0;
-							sum := 0;
-							rx_state <= RX_DATA;
-						end if;
-						
-						
-					
-					when RX_DATA =>
-						
-						-- sample the bit multiple times to determine its value
-						if (samplesDone < samplesPerBit and t >= sampleStart) then	-- sampling started, need to get the specified number of samples
-							if (rxIn_z(0) = '1') then sum := sum + 1; end if;		-- sample the input and add its value to the running total of 1's received
-							samplesDone := samplesDone + 1;
-							if (samplesDone = samplesPerBit) then	-- finished taking samples. Now the bit value can be determined
-								if (sum > threshold) then bitValue := '1'; else bitValue := '0'; end if;	-- a democratic decision to determine the bit value
-								if (bitsDone >= 1 and bitsDone < 1 + dataLen) then	-- data bit
-									rxReg(bitsDone - 1) := bitValue;
-								elsif (bitsDone = 1 + dataLen) then  -- stop bit
-									if (bitValue = '0') then err := '1'; end if;	-- stop bit is zero , this is an error
-								end if;
-							end if;
-						end if;
-						
-						t := t + 1;
-						if (t >= clockDivRatio) then	-- end of bit period
-							t := 0;
-							sum := 0;
-							samplesDone := 0;
-							bitsDone := bitsDone + 1;
-							if (bitsDone >= frameLen) then	-- end of received frame
-								if (err = '0') then 
-									rxData_valid <= '1';
-									rxData <= rxReg;
-								else
-									rxError <= '1';
-								end if;
-								rx_state <= IDLE; 
-							end if;
-						end if;
-						
-						
-					
-				end case;
-			end if;
-		end if;
+      if (rising_edge(clock)) then
+        rxIn_z <= rxIn_z(2 downto 0) & rxIn;	-- delayed and synced versions of the rx input	
+        
+        if (reset = '1') then
+          
+          rxData_valid <= '0';
+          rx_state <= IDLE;
+          rxError <= '0';
+          
+        else
+          
+          case rx_state is			
+            when IDLE => 
+              
+              rxError <= '0';
+              rxData_valid <= '0';
+              if (rxIn_z(2 downto 0) = "100") then		-- start bit edge detect (filtered)
+                t := 1;		-- start on clock 1 as clock 0 was the rx_in_z(0) value already verified as 0 (the start flag). rx_in_z(0) is the data used for processing
+                err := '0';
+                bitsDone := 0;
+                samplesDone := 0;
+                sum := 0;
+                rx_state <= RX_DATA;
+              end if;
+              
+              
+              
+            when RX_DATA =>
+              
+              -- sample the bit multiple times to determine its value
+              if (samplesDone < samplesPerBit and t >= sampleStart) then	-- sampling started, need to get the specified number of samples
+                if (rxIn_z(0) = '1') then
+                  sum := sum + 1;
+                end if;		-- sample the input and add its value to the running total of 1's received
+
+                samplesDone := samplesDone + 1;
+
+                if (samplesDone = samplesPerBit) then	-- finished taking samples. Now the bit value can be determined
+                  if (sum > threshold) then
+                    bitValue := '1';
+                  else
+                    bitValue := '0';
+                  end if;	-- a democratic decision to determine the bit value
+                  if (bitsDone >= 1 and bitsDone < 1 + dataLen) then	-- data bit
+                    rxReg(bitsDone - 1) := bitValue;
+                  elsif (bitsDone = 1 + dataLen) then  -- stop bit
+                    if (bitValue = '0') then
+                      err := '1';
+                    end if;	-- stop bit is zero , this is an error
+                  end if;
+                end if;
+              end if;
+              
+              t := t + 1;
+              if (t >= clockDivRatio) then	-- end of bit period
+                t := 0;
+                sum := 0;
+                samplesDone := 0;
+                bitsDone := bitsDone + 1;
+                if (bitsDone >= frameLen) then	-- end of received frame
+                  if (err = '0') then 
+                    rxData_valid <= '1';
+                    rxData <= rxReg;
+                  else
+                    rxError <= '1';
+                  end if;
+                  rx_state <= IDLE; 
+                end if;
+              end if;
+              
+              
+              
+          end case;
+        end if;
+      end if;
 	end process;
 	
 	

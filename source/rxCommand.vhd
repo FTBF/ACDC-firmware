@@ -82,7 +82,8 @@ begin
 		
       if (reset_z = '1' or wordAlignReset = '1') then
 			
-			dout_valid_z <= '0';
+        dout_valid_z <= '0';
+        dout <= x"00000000";
 			timeoutEnable <= '0';
 			i := 0;
 		

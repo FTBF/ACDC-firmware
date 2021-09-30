@@ -79,15 +79,15 @@ begin
 	
 	
 	-- synchronize valid output to uart clock
-	SYNC0: pulseSync port map (clock.sys, clock.x4, txByte_valid_z, txByte_valid);
+	SYNC0: pulseSync port map (clock.local40, clock.local160, txByte_valid_z, txByte_valid);
 	
 	-- synchronize data ack input to sys clock
-	SYNC1: pulseSync port map (clock.x4, clock.sys, txByte_ack, txByte_ack_z);
+	SYNC1: pulseSync port map (clock.local160, clock.local40, txByte_ack, txByte_ack_z);
 	
 	
 	
 	
-	DATA_HANDLER: process(clock.sys)
+	DATA_HANDLER: process(clock.local40)
 		variable state: state_type;
 		variable t: natural; -- timeout value 
 		variable i: natural range 0 to 65535;  -- index of the current data word
@@ -112,7 +112,7 @@ begin
 		
 		
 	begin
-		if (rising_edge(clock.sys)) then
+		if (rising_edge(clock.local40)) then
 			
 			-- sync
 			txReady_z <= txReady;

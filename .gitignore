@@ -4,7 +4,15 @@
 db
 incremental_db
 simulation
+greybox_tmp
 *.bak
 *.rpt
 *.qws
 *.sopcinfo
+*.summary
+*.sof
+*.jdi
+*.done
+*.smsg
+\#*\#
+*~
