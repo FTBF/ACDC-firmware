@@ -12,24 +12,16 @@
 #-waveform {0  12.500} 
 
 # Original Clock Setting Name: master_clock0
-create_clock 	-period "25.000 ns"  	[get_ports clk_system_40]
-create_clock 	-period "25.000 ns"   [get_ports clk_local_200]
-
-
-#create_clock -period "25.000 ns" \
-					-name {clk40M}
-				 
-#create_clock -period 320MHz -name {xCLK}
-					
-create_clock -period 40MHz 	[get_ports PSEC_A_RD_CLK]
-					
-create_clock -period 40MHz 	[get_ports PSEC_B_RD_CLK]
-
-create_clock -period 40MHz 	[get_ports PSEC_C_RD_CLK]
-					
-create_clock -period 40MHz 	[get_ports PSEC_D_RD_CLK]
-
-create_clock -period 40MHz 	[get_ports PSEC_E_RD_CLK]
+create_clock 	-period "30.000 ns"  [get_ports clockIn.localOsc]
+create_clock 	-period "40.000 ns"  [get_ports clockIn.accOsc]
+create_clock 	-period "25.000 ns"  [get_ports clockIn.jcpll]
+create_clock 	-period "25000.000 ns"  [get_ports {jcpll_ctrl.spi_clock}]
+				
+create_clock -period 40MHz 	[get_ports PSEC4_out(0).readClock]					
+create_clock -period 40MHz 	[get_ports PSEC4_out(1).readClock]
+create_clock -period 40MHz 	[get_ports PSEC4_out(2).readClock]					
+create_clock -period 40MHz 	[get_ports PSEC4_out(3).readClock]
+create_clock -period 40MHz 	[get_ports PSEC4_out(4).readClock]
 
 #create_clock [get_ports lvds_rx_in(1)]
 
