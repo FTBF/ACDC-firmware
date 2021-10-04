@@ -65,7 +65,11 @@ architecture vhdl of ACDC_test_tb is
   signal DAC            : DAC_array_type;
   signal SMA_J5         : std_logic;	   
   signal SMA_J16        : std_logic;
-  signal ledOut         : std_logic_vector(9-1 downto 0);   
+  signal ledOut         : std_logic_vector(9-1 downto 0);
+  signal debug2         : std_logic;
+  signal debug3         : std_logic;
+  signal spi_miso		 : std_logic;	
+
   
   signal	reset				:	std_logic;  
   signal	serial				:	std_logic;   
@@ -120,7 +124,11 @@ begin  -- architecture vhdl
       DAC            => DAC,   
 	  SMA_J5			=> SMA_J5,
 	  SMA_J16			=> SMA_J16,
-      ledOut         => ledOut);
+      ledOut         => ledOut,
+	  debug2        =>  debug2,
+      debug3         => debug3,
+      spi_miso	  => spi_miso
+);
 	  
 ------------------------------------
 --	SERIAL TX BUFFER
@@ -206,15 +214,15 @@ tx_comms_map : synchronousTx_8b10b_ACC port map (
 	wait for 2 ms;
 	
 	sendword(X"FFF10000", cmd_in, cmd_ready);
-	sendword(X"FFF300a0", cmd_in, cmd_ready); 
-	sendword(X"FFF4a332", cmd_in, cmd_ready); 
+	sendword(X"FFF30060", cmd_in, cmd_ready); 
+	sendword(X"FFF45550", cmd_in, cmd_ready); 
 	sendword(X"FFF50000", cmd_in, cmd_ready);
 	sendword(X"FFF10000", cmd_in, cmd_ready);
 	
-	wait for 1.2 ms;
+	wait for 0.1 ms;
 	
-	sendword(X"FFF38765", cmd_in, cmd_ready); 
-	sendword(X"FFF44321", cmd_in, cmd_ready); 
+	sendword(X"FFF30001", cmd_in, cmd_ready); 
+	sendword(X"FFF48381", cmd_in, cmd_ready); 
 	sendword(X"FFF50000", cmd_in, cmd_ready);
 	sendword(X"FFF10000", cmd_in, cmd_ready);
 

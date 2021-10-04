@@ -40,7 +40,7 @@ architecture vhdl of ClockGenerator is
   -- constants 
   -- set depending on osc frequency
   constant TIMER_CLK_DIV_RATIO: natural:= 40000;	-- 40MHz / 40000 = 1kHz
-  constant SERIAL_CLK_DIV_RATIO: natural:= 1000;	-- 40MHz / 1000 = 40kHz	(exact freq is not too critical)
+  constant SERIAL_CLK_DIV_RATIO: natural:= 100;	-- 40MHz / 1000 = 40kHz	(exact freq is not too critical)
 
   signal PLL_ConfigRequest_sync : std_logic;
   signal serialClock	: std_logic := '0'; --default for sim
@@ -118,8 +118,8 @@ end process;
 -- JITTER CLEANER CONTROLLER	
 ---------------------------------------
 
-	jcpll.testMode <= '1';			-- active low; leave this pin high
-	jcpll.spi_clock <= serialClock;
+	jcpll.testsync <= '0';			-- must be tied low
+	jcpll.spi_clock <= not jcpll.SPI_latchEnable and serialClock;
 	
 	
 	-- reference select
@@ -180,7 +180,7 @@ process(serialClock)
 					
 					when IDLE =>
 						jcpll.SPI_latchEnable <= '1';
-						i := 31;		--data bit counter
+						i := 0;		--data bit counter
 						data := pll_configReg;
 						if 	  pll_configRequest_sync= '1' then		
 							state	:= WRITE_DATA;	
@@ -195,11 +195,11 @@ process(serialClock)
 						jcpll.SPI_latchEnable <= '0';
 						jcpll.SPI_MOSI <= data(i);
 						
-						if (i = 0) then 
+						if (i >= 31) then 
 							state := GND_STATE; 
 						else 
 							STATE	:= WRITE_DATA;
-							i := i - 1;		-- number of serial data bits written
+							i := i + 1;		-- number of serial data bits written
 						end if;						
 
 					when GND_STATE =>

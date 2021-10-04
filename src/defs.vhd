@@ -133,7 +133,7 @@ type jcpll_ctrl_type is record
 	spi_mosi				:	std_logic;
 	spi_clock			:	std_logic;
 	testMode				:	std_logic;
-	pllSync				:	std_logic;
+	testsync				:	std_logic;
 	powerDown			:	std_logic;
 	refSelect			:	std_logic;
 end record;

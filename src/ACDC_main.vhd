@@ -40,8 +40,10 @@ entity ACDC_main is
 		DAC						: out DAC_array_type;
 		SMA_J5					: inout std_logic;
 		SMA_J16					: inout std_logic;
-		ledOut     				: out std_logic_vector(8 downto 0)
-		
+		ledOut     				: out std_logic_vector(8 downto 0);
+        debug2                  : out std_logic;
+        debug3                  : out std_logic;
+        spi_miso				: in std_logic	
 );
 end ACDC_main;
 	
@@ -206,12 +208,13 @@ clockGen_inst: ClockGenerator
 ------------------------------------
 LVDS_out(0) <=	serialTx.serial;	--  serial comms tx
 LVDS_out(1) <=	'0';	-- not used
-LVDS_out(2) <=	jcpll_ctrl.SPI_MOSI;	-- not used
-LVDS_out(3) <=	'0';	-- not used
+LVDS_out(2) <=	clock.sys;	-- not used
+LVDS_out(3) <=	clock.acc40;	-- not used
 serialRx.serial 	<= LVDS_in(0);	--  serial comms rx
 acc_trig		 		<= LVDS_in(1);
 
-
+debug2 <= spi_miso;
+debug3 <= jcpll_ctrl.spi_clock;
    
 ------------------------------------
 --	SERIAL TX
