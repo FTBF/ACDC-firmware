@@ -126,9 +126,8 @@ set_location_assignment PIN_AB9 -to calEnable[5]
 set_location_assignment PIN_AA7 -to calEnable[4]
 set_location_assignment PIN_AF6 -to calEnable[3]
 set_location_assignment PIN_AC12 -to calEnable[2]
-set_location_assignment PIN_V14 -to calEnable[1]
-set_location_assignment PIN_AB12 -to calEnable[0]
-set_location_assignment PIN_D7 -to SMA_trigIn
+set_location_assignment PIN_Y9  -to calEnable[1]
+set_location_assignment PIN_AC9 -to calEnable[0]
 set_location_assignment PIN_A25 -to PSEC4_trigSign
 set_location_assignment PIN_AE21 -to PSEC4_out[4].trigClear
 set_location_assignment PIN_V16 -to PSEC4_out[4].ringOsc_enable
@@ -318,6 +317,7 @@ set_location_assignment PIN_B14 -to PSEC4_in[0].DLL_clock
 set_location_assignment PIN_D24 -to PSEC4_freq_sel
 set_location_assignment PIN_AF7 -to LVDS_out[3]
 set_location_assignment PIN_AF4 -to LVDS_out[2]
+# LVDS_out[1] is a dedicated PLL clock output 
 #set_location_assignment PIN_AB5 -to LVDS_out[1]
 set_location_assignment PIN_AF2 -to LVDS_out[0]
 set_location_assignment PIN_AF11 -to LVDS_in[2]
