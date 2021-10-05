@@ -292,12 +292,9 @@ dataHandler_map: dataHandler port map (
 		clock			   => clock.acc40,
 		serialRX		   => serialRx,
 		trigInfo		   => trigInfo,
+        rxparams           => rxparams,
 		Wlkn_fdbk_current  => Wlkn_fdbk_current,
-		Wlkn_fdbk_target   => rxparams.RO_target,
-		vbias			   => rxparams.vbias,
-		selfTrig		   => rxparams.selfTrig,
 		pro_vdd			   => pro_vdd,
-		dll_vdd			   => rxparams.dll_vdd,
 		vcdl_count		   => vcdl_count,
 		timestamp		   => timestamp,
 		beamgate_timestamp => beamgate_timestamp,
@@ -315,8 +312,7 @@ dataHandler_map: dataHandler port map (
 		selfTrig_rateCount => selfTrig_rateCount,
 		trig_rateCount	   => trig_rateCount,
 		trig_frameType	   => trig_frameType,
-		txBusy			   => txBusy,
-		testMode		   => rxparams.testMode
+		txBusy			   => txBusy
 );
 
 

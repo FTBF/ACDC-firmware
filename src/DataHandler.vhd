@@ -29,12 +29,9 @@ entity dataHandler is
     clock			   : 	in		std_logic;      
     serialRx		   :	in		serialRx_type;
     trigInfo		   :    in 	    trigInfo_type;
+    rxParams           :    in      RX_Param_jcpll_type;
     Wlkn_fdbk_current  :	in		natArray;
-    Wlkn_fdbk_target   :	in		natArray;
-    vbias			   :	in		natArray16;
-    selfTrig		   :	in		selfTrig_type;
     pro_vdd			   :	in		natArray16;
-    dll_vdd			   :	in		natArray16;
     vcdl_count		   :	in		array32;
     timestamp		   :	in		std_logic_vector(63 downto 0);
     beamgate_timestamp :	in		std_logic_vector(63 downto 0);
@@ -52,8 +49,7 @@ entity dataHandler is
     selfTrig_rateCount :    in 	    selfTrig_rateCount_array;
     trig_rateCount	   :	in		natural;
     trig_frameType	   :	in		natural;
-    txBusy			   :	out	    std_logic;			-- a flag used for diagnostics and frame time measurement
-    testMode		   :	in		testMode_type
+    txBusy			   :	out	    std_logic			-- a flag used for diagnostics and frame time measurement
     );
 end dataHandler;
 
@@ -238,7 +234,7 @@ begin
 									preambleDone := true;
 						
 								elsif (not psecDataDone) then
-									if (testMode.sequencedPsecData = '1') then
+									if (rxparams.testMode.sequencedPsecData = '1') then
 										txWord := std_logic_vector(to_unsigned(i,16));
 									else
 										txWord := ramData(Psec4sDone);
@@ -428,9 +424,9 @@ begin
 	for i in 0 to N-1 loop
 		info(i,0) <= x"BA11";
 		info(i,1) <= std_logic_vector(to_unsigned(Wlkn_fdbk_current(i),16));
-		info(i,2) <= std_logic_vector(to_unsigned(Wlkn_fdbk_target(i),16));
-		info(i,3) <= std_logic_vector(to_unsigned(vbias(i),16));
-		info(i,4) <= std_logic_vector(to_unsigned(selfTrig.threshold(i),16));
+		info(i,2) <= std_logic_vector(to_unsigned(rxparams.RO_target(i),16));
+		info(i,3) <= std_logic_vector(to_unsigned(rxparams.vbias(i),16));
+		info(i,4) <= std_logic_vector(to_unsigned(rxparams.selfTrig.threshold(i),16));
 		info(i,5) <= std_logic_vector(to_unsigned(pro_vdd(i),16));
 		info(i,6) <= trigInfo(0,i);
 		info(i,7) <= trigInfo(1,i);
@@ -457,7 +453,7 @@ begin
 		
 		info(i,11) <= std_logic_vector(vcdl_count(i)(15 downto 0));
 		info(i,12) <= std_logic_vector(vcdl_count(i)(31 downto 16));
-		info(i,13) <= std_logic_vector(to_unsigned(dll_vdd(i),16));
+		info(i,13) <= std_logic_vector(to_unsigned(rxparams.dll_vdd(i),16));
 	end loop;
 	end if;
 end process;
