@@ -362,11 +362,11 @@ set_location_assignment PIN_A11 -to SMA_J5
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_lock
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_ctrl.pllSync
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_ctrl.powerDown
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_ctrl.refSelect
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_ctrl.spi_clock
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_ctrl.spi_latchEnable
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_ctrl.spi_mosi
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_ctrl.testsync
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_ctrl.outputEnable
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to clockIn.localOsc
 set_instance_assignment -name IO_STANDARD LVDS -to clockIn.jcpll
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to SMA_J16

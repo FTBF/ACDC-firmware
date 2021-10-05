@@ -32,9 +32,9 @@ end record;
 --------------------------------
 constant firmwareVersion: firmwareVersion_type:= (
 	
-	number => 	x"0304", 
+	number => 	x"0400", 
 	year => 		x"2021",	
-	MMDD => 		x"0622"			-- month, date
+	MMDD => 		x"1005"			-- month, date
 	
 );
 --
@@ -135,7 +135,7 @@ type jcpll_ctrl_type is record
 	testMode				:	std_logic;
 	testsync				:	std_logic;
 	powerDown			:	std_logic;
-	refSelect			:	std_logic;
+	outputEnable			:	std_logic;
 end record;
 
 
@@ -387,55 +387,6 @@ type serialRx_type is record
    disparity_error		:	std_logic;
 end record;
 
-
-
-
-------------------------------------
---	USB 
-------------------------------------
-
-type USB_in_type is record
-	CTL		: std_logic_vector(2 downto 0);
-	CLKOUT	: std_logic;
-	WAKEUP	: std_logic;
-end record;
-
-
-type USB_out_type is record
-	RDY	: std_logic_vector(1 downto 0);
-end record;
-
-
-type USB_bus_type is record
-	FD	: std_logic_vector(15 downto 0);
-	PA	: std_logic_vector(7 downto 0);
-end record;
-
-
-------------------------------------
---	USB TX
-------------------------------------
-type usbTx_type is record
-	word				:	std_logic_vector(7 downto 0);
-	valid				:	std_logic;
-	serial			:	std_logic;
-   ready	         :	std_logic;
-   dataAck       	:	std_logic;
-	dataTransferDone:	std_logic;
-end record;
-
-
-
-
-------------------------------------
---	USB RX
-------------------------------------
-type usbRx_type is record
-	serial			:	std_logic;
-	word				:	std_logic_vector(7 downto 0);
-	valid				:	std_logic;
-   error	         :	std_logic;
-end record;
 
 
 

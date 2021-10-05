@@ -113,7 +113,8 @@ begin  -- architecture vhdl
     port map (
       clockIn        => clockIn,
       jcpll_ctrl     => jcpll_ctrl,
-      jcpll_lock     => jcpll_lock,
+      jcpll_lock     => jcpll_lock,	
+      jcpll_spi_miso => spi_miso,
       LVDS_in        => LVDS_in,
       LVDS_out       => LVDS_out,
       PSEC4_in       => PSEC4_in,
@@ -126,8 +127,7 @@ begin  -- architecture vhdl
 	  SMA_J16			=> SMA_J16,
       ledOut         => ledOut,
 	  debug2        =>  debug2,
-      debug3         => debug3,
-      spi_miso	  => spi_miso
+      debug3         => debug3
 );
 	  
 ------------------------------------

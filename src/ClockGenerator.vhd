@@ -122,17 +122,9 @@ end process;
 	jcpll.spi_clock <= not jcpll.SPI_latchEnable and serialClock;
 	
 	
-	-- reference select
-	-- 1 = Primary ref = lvds clock from ACC (normal operation)
-	-- 0 = Secondary ref = on-board oscillator
-	jcpll.refSelect <= '1';			
-
 
 -------------------------------------------------------------------------------
 
---PLL_ConfigRequest_sync
-
-  --pll_configreq_sync : pulsesync2
 
 pll_configreq_sync: pulseSync2
   port map (
@@ -162,7 +154,7 @@ process(serialClock)
 			
 				jcpll.SPI_latchEnable <= '1';
 				jcpll.powerDown <= '0';		-- active low
-				--jcpll.pllSync <= '0';
+                jcpll.outputEnable <= '0';
                 jcpll.SPI_MOSI <= '1';
 				state	:= PWR_UP;		
 				t := t + 1;
@@ -174,7 +166,8 @@ process(serialClock)
 
 
 					when PWR_UP =>
-						jcpll.powerDown <= '1';		-- rising edge on power down
+                        jcpll.powerDown <= '1';		-- rising edge on power down
+                        jcpll.outputEnable <= '1';
 						state	:= IDLE;	
 
 					
@@ -205,7 +198,7 @@ process(serialClock)
 					when GND_STATE =>
 						jcpll.SPI_latchEnable <= '1';
 						jcpll.powerDown <= '1';
-						--jcpll.pllSync <= '1';
+                        jcpll.outputEnable <= '1';
                         state := IDLE;
 						
 				end case;
