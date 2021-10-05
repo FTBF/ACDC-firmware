@@ -48,7 +48,7 @@ signal	readData: std_logic_vector(15 downto 0);
 signal	writeAddress_slv: std_logic_vector(13 downto 0);
 signal	readAddress_slv: std_logic_vector(13 downto 0);
 signal	blockSel: natural;
-signal	sample_wrAddr: natural range 0 to 255;
+signal	sample_wrAddr: unsigned(7 downto 0);
 signal	sample_wrAddr_slv: std_logic_vector(7 downto 0);
 signal	channel_wrAddr_slv: std_logic_vector(2 downto 0);
 
@@ -80,7 +80,7 @@ DATA_RAM_MAP: dataRam PORT map
 	
 -- write address
 writeAddress <= "000" & channel_wrAddr_slv & sample_wrAddr_slv;	-- 3 bit channel number + 8 bit sample number
-sample_wrAddr_slv <= std_logic_vector(to_unsigned(sample_wrAddr,8));	
+sample_wrAddr_slv <= std_logic_vector(sample_wrAddr);	
 channel_wrAddr_slv <= std_logic_vector(to_unsigned(channel - 1,3));	
 	
 	
@@ -138,7 +138,7 @@ begin
 
 			when RD_SETUP =>
 					
-					sample_wrAddr <=  0;
+					sample_wrAddr <=  X"00";
 					channel <= 1;
 					blockSel   	<= 1;
 					state := CLKA; 

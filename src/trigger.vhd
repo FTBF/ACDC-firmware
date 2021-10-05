@@ -262,7 +262,9 @@ begin
 		-- global reset or event count reset request
 		if (reset = '1' or trigSetup.eventAndTime_reset = '1') then 
 
-			transfer_en := false;
+            transfer_en := false;
+            transfer_request <= '0';
+            digitize_request <= '0';
 			state := TRIG_RESET;
 			eventCount <= X"00000000";
 			ppsCount <= X"00000000";

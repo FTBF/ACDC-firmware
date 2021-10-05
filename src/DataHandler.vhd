@@ -24,37 +24,37 @@ use work.defs.all;
 
 
 entity dataHandler is
-	port (
-		reset						: 	in   	std_logic;
-		clock						: 	in		std_logic;      
-		serialRx					:	in		serialRx_type;
-		trigInfo					:  in 	trigInfo_type;
-		Wlkn_fdbk_current		:	in		natArray;
-		Wlkn_fdbk_target		:	in		natArray;
-		vbias						:	in		natArray16;
-		selfTrig					:	in		selfTrig_type;
-		pro_vdd					:	in		natArray16;
-		dll_vdd					:	in		natArray16;
-		vcdl_count				:	in		array32;
-		timestamp				:	in		std_logic_vector(63 downto 0);
-		beamgate_timestamp	:	in		std_logic_vector(63 downto 0);
-		ppsCount    		  	:	in		std_logic_vector(31 downto 0);
-		beamGateCount     	:	in		std_logic_vector(31 downto 0);
-		eventCount				:	in		std_logic_vector(31 downto 0);
-		IDrequest				:	in		std_logic;
-      readRequest				:	in		std_logic;
-      trigTransferDone		:	out	std_logic;
-      ramAddress           :  out   natural;
-      ramData              :  in    wordArray;
-      txData	            : 	out	std_logic_vector(7 downto 0);
-		txReq				 	   : 	out	std_logic;
-      txAck           		: 	in 	std_logic; 
-		selfTrig_rateCount	:  in 	selfTrig_rateCount_array;
-		trig_rateCount			:	in		natural;
-		trig_frameType			:	in		natural;
-		txBusy					:	out	std_logic;			-- a flag used for diagnostics and frame time measurement
-		testMode					:	in		testMode_type
-);
+  port (
+    reset			   : 	in   	std_logic;
+    clock			   : 	in		std_logic;      
+    serialRx		   :	in		serialRx_type;
+    trigInfo		   :    in 	    trigInfo_type;
+    Wlkn_fdbk_current  :	in		natArray;
+    Wlkn_fdbk_target   :	in		natArray;
+    vbias			   :	in		natArray16;
+    selfTrig		   :	in		selfTrig_type;
+    pro_vdd			   :	in		natArray16;
+    dll_vdd			   :	in		natArray16;
+    vcdl_count		   :	in		array32;
+    timestamp		   :	in		std_logic_vector(63 downto 0);
+    beamgate_timestamp :	in		std_logic_vector(63 downto 0);
+    ppsCount    	   :	in		std_logic_vector(31 downto 0);
+    beamGateCount      :	in		std_logic_vector(31 downto 0);
+    eventCount		   :	in		std_logic_vector(31 downto 0);
+    IDrequest		   :	in		std_logic;
+    readRequest		   :	in		std_logic;
+    trigTransferDone   :	out	    std_logic;
+    ramAddress         :    out     natural;
+    ramData            :    in      wordArray;
+    txData	           : 	out	    std_logic_vector(7 downto 0);
+    txReq			   : 	out	    std_logic;
+    txAck              : 	in 	    std_logic; 
+    selfTrig_rateCount :    in 	    selfTrig_rateCount_array;
+    trig_rateCount	   :	in		natural;
+    trig_frameType	   :	in		natural;
+    txBusy			   :	out	    std_logic;			-- a flag used for diagnostics and frame time measurement
+    testMode		   :	in		testMode_type
+    );
 end dataHandler;
 
 
@@ -121,7 +121,7 @@ begin
 			
 			state := WAIT_FOR_REQUEST;
 			txReq <= '0';
-         trigTransferDone <= '0';
+            trigTransferDone <= '0';
 			serialNumber <= x"00000000";
 			IDframeCount <= x"00000000";
 			txBusy <= '0';

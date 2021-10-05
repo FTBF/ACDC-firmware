@@ -231,9 +231,59 @@ begin
   port map (
     src_clk      => dest_clk,
     src_pulse    => dest_latch,
-    src_aresetn  => src_aresetn,
+    src_aresetn  => dest_aresetn,
     dest_clk     => src_clk,
     dest_pulse   => dest_latch_sync,
+    dest_aresetn => src_aresetn
+  );
+
+  sync_DLL_resetRequest : pulseSync2
+  port map (
+    src_clk      => src_clk,
+    src_pulse    => src_params.DLL_resetRequest,
+    src_aresetn  => src_aresetn,
+    dest_clk     => dest_clk,
+    dest_pulse   => dest_params.DLL_resetRequest,
+    dest_aresetn => dest_aresetn
+  );
+  
+  sync_eventAndTime_reset : pulseSync2
+  port map (
+    src_clk      => src_clk,
+    src_pulse    => src_params.trigSetup.eventAndTime_reset,
+    src_aresetn  => src_aresetn,
+    dest_clk     => dest_clk,
+    dest_pulse   => dest_params.trigSetup.eventAndTime_reset,
+    dest_aresetn => dest_aresetn
+  );
+  
+  sync_transferEnableReq : pulseSync2
+  port map (
+    src_clk      => src_clk,
+    src_pulse    => src_params.trigSetup.transferEnableReq,
+    src_aresetn  => src_aresetn,
+    dest_clk     => dest_clk,
+    dest_pulse   => dest_params.trigSetup.transferEnableReq,
+    dest_aresetn => dest_aresetn
+  );
+  
+  sync_transferDisableReq : pulseSync2
+  port map (
+    src_clk      => src_clk,
+    src_pulse    => src_params.trigSetup.transferDisableReq,
+    src_aresetn  => src_aresetn,
+    dest_clk     => dest_clk,
+    dest_pulse   => dest_params.trigSetup.transferDisableReq,
+    dest_aresetn => dest_aresetn
+  );
+  
+  sync_resetReq : pulseSync2
+  port map (
+    src_clk      => src_clk,
+    src_pulse    => src_params.trigSetup.resetReq,
+    src_aresetn  => src_aresetn,
+    dest_clk     => dest_clk,
+    dest_pulse   => dest_params.trigSetup.resetReq,
     dest_aresetn => dest_aresetn
   );
   
@@ -257,10 +307,24 @@ begin
     else
       if rising_Edge(dest_clk) then
         if src_latch_sync = '1' then
-          dest_params <= src_params_latch;
+          dest_params.trigSetup.mode       <= src_params_latch.trigSetup.mode;
+          dest_params.trigSetup.sma_invert <= src_params_latch.trigSetup.sma_invert;
+          dest_params.selfTrig             <= src_params_latch.selfTrig;
+          dest_params.Vbias                <= src_params_latch.Vbias;
+          dest_params.DLL_Vdd              <= src_params_latch.DLL_Vdd;
+          dest_params.RO_target            <= src_params_latch.RO_target;
+          dest_params.testMode             <= src_params_latch.testMode;
+
           dest_latch <= '1';
         else
-          dest_params <= dest_params;
+          dest_params.trigSetup.mode       <= dest_params.trigSetup.mode;
+          dest_params.trigSetup.sma_invert <= dest_params.trigSetup.sma_invert;
+          dest_params.selfTrig             <= dest_params.selfTrig;
+          dest_params.Vbias                <= dest_params.Vbias;
+          dest_params.DLL_Vdd              <= dest_params.DLL_Vdd;
+          dest_params.RO_target            <= dest_params.RO_target;
+          dest_params.testMode             <= dest_params.testMode;
+
           dest_latch <= '0';
         end if;
       end if;

@@ -34,10 +34,11 @@ entity ACDC_main is
 		PSEC4_out				: buffer PSEC4_out_array_type;
 		PSEC4_freq_sel			: out    std_logic;
 		PSEC4_trigSign			: out    std_logic;
+        enableV1p2a             : out    std_logic;
 		calEnable				: inout  std_logic_vector(14 downto 0);
 		DAC						: out    DAC_array_type;
 		SMA_J5					: inout  std_logic;
-		SMA_J16					: inout  std_logic;
+		SMA_J16					: in     std_logic;
 		ledOut     				: out    std_logic_vector(8 downto 0);
         debug2                  : out    std_logic;
         debug3                  : out    std_logic
@@ -86,7 +87,6 @@ architecture vhdl of	ACDC_main is
 	signal	trig_frameType     : natural;
 	signal	systemTime_reset   : std_logic;
 	signal	acc_trig		   : std_logic;
-	signal	sma_trig		   : std_logic;
 	signal	self_trig		   : std_logic;
 	signal	digitize_request   : std_logic;
 	signal	transfer_request   : std_logic;
@@ -180,7 +180,8 @@ begin
   end if;
 end process;
 
-
+-- fix the 1.2V analog linear regular on 
+enableV1p2a <= '1';
 
       
 ------------------------------------

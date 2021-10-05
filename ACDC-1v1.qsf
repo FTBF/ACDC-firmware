@@ -339,6 +339,7 @@ set_location_assignment PIN_G10 -to DAC[3].serialData
 set_location_assignment PIN_B10 -to DAC[3].serialClock
 set_location_assignment PIN_H11 -to DAC[3].load
 set_location_assignment PIN_E11 -to DAC[3].clear
+set_location_assignment PIN_AB12 -to enableV1p2a
 
 set_instance_assignment -name IO_STANDARD LVDS_E_3R -to LVDS_out[3]
 set_instance_assignment -name IO_STANDARD LVDS_E_3R -to LVDS_out[2]

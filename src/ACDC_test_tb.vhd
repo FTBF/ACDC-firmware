@@ -59,7 +59,8 @@ architecture vhdl of ACDC_test_tb is
   signal PSEC4_in       : PSEC4_in_array_type;
   signal PSEC4_out      : PSEC4_out_array_type;
   signal PSEC4_freq_sel : std_logic;
-  signal PSEC4_trigSign : std_logic;
+  signal PSEC4_trigSign : std_logic;  
+  signal enableV1p2a    : std_logic;
   signal calEnable      : std_logic_vector(14 downto 0);
   signal calInputSel    : std_logic;
   signal DAC            : DAC_array_type;
@@ -120,7 +121,8 @@ begin  -- architecture vhdl
       PSEC4_in       => PSEC4_in,
       PSEC4_out      => PSEC4_out,
       PSEC4_freq_sel => PSEC4_freq_sel,
-      PSEC4_trigSign => PSEC4_trigSign,
+      PSEC4_trigSign => PSEC4_trigSign,	
+	  enableV1p2a   => enableV1p2a,
       calEnable      => calEnable,	 
       DAC            => DAC,   
 	  SMA_J5			=> SMA_J5,
@@ -185,18 +187,18 @@ tx_comms_map : synchronousTx_8b10b_ACC port map (
     end if;
   end process;
   
-  clockIn.jcpll <= '0';
---  ACC_CLK_GEN_PROC : process 
---  begin
---    if ENDSIM = false then
---      clockIn.jcpll <= '0';
---      wait for CLK_PERIOD / 2;
---      clockIn.jcpll <= '1';
---      wait for CLK_PERIOD / 2;
---    else 
---      wait;
---    end if;
---  end process;	
+  --clockIn.jcpll <= '0';
+  ACC_CLK_GEN_PROC : process 
+  begin
+    if ENDSIM = false then
+      clockIn.jcpll <= '0';
+      wait for CLK_PERIOD / 2;
+      clockIn.jcpll <= '1';
+      wait for CLK_PERIOD / 2;
+    else 
+      wait;
+    end if;
+  end process;	
   
   -- waveform generation
   WaveGen_Proc: process
@@ -207,24 +209,51 @@ tx_comms_map : synchronousTx_8b10b_ACC port map (
 	reset <= '1';
 	cmd_in <= X"00000000";
 	cmd_ready <= '0';
+	LVDS_in(1) <= '0';
+	LVDS_in(2) <= '0';
+	
+	for i in 0 to 4 loop
+		PSEC4_in(i).data <= X"000";
+		PSEC4_in(i).overflow <= '0';
+		PSEC4_in(i).ringOsc_mon <= '1';
+		PSEC4_in(i).DLL_clock <= '0';
+		PSEC4_in(i).trig <= "000000";
+	end loop;
+		
+	
 	wait for 20 us;	 
 	reset <= '0';
 	wait for 20 us;	
 	
-	wait for 2 ms;
+	wait for 200 us;
 	
-	sendword(X"FFF10000", cmd_in, cmd_ready);
-	sendword(X"FFF30060", cmd_in, cmd_ready); 
-	sendword(X"FFF45550", cmd_in, cmd_ready); 
-	sendword(X"FFF50000", cmd_in, cmd_ready);
-	sendword(X"FFF10000", cmd_in, cmd_ready);
+	--PSEC4_in(0).trig <= "001000";
 	
-	wait for 0.1 ms;
+	-- set trigger mode 1 "software trigger mode"
+	sendword(X"FFB00001", cmd_in, cmd_ready);  
+	wait for 10 us;
+	-- set transfer enable = true
+	sendword(X"FFB50000", cmd_in, cmd_ready);
 	
-	sendword(X"FFF30001", cmd_in, cmd_ready); 
-	sendword(X"FFF48381", cmd_in, cmd_ready); 
-	sendword(X"FFF50000", cmd_in, cmd_ready);
-	sendword(X"FFF10000", cmd_in, cmd_ready);
+	wait for 10 us;
+	
+	LVDS_in(1) <= '1';
+	wait for 200 ns;
+	LVDS_in(1) <= '0';
+	
+	
+	--sendword(X"FFF10000", cmd_in, cmd_ready);
+--	sendword(X"FFF30060", cmd_in, cmd_ready); 
+--	sendword(X"FFF45550", cmd_in, cmd_ready); 
+--	sendword(X"FFF50000", cmd_in, cmd_ready);
+--	sendword(X"FFF10000", cmd_in, cmd_ready);
+--	
+--	wait for 0.1 ms;
+--	
+--	sendword(X"FFF30001", cmd_in, cmd_ready); 
+--	sendword(X"FFF48381", cmd_in, cmd_ready); 
+--	sendword(X"FFF50000", cmd_in, cmd_ready);
+--	sendword(X"FFF10000", cmd_in, cmd_ready);
 
 	
 	wait;

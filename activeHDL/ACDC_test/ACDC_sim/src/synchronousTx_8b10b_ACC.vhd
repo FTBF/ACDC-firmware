@@ -124,7 +124,7 @@ begin
 		-- sync generator
 		-- raise a flag indicating a sync word should be sent (every 1ms)
 		t := t + 1;
-		if (t >= 40000) then sync_flag := '1';	sync_count := 0; t := 0; end if;
+		if (t >= 4000) then sync_flag := '1';	sync_count := 0; t := 0; end if;
 		
 			
 		-- input data tx request 
