@@ -56,13 +56,14 @@ end component ClockGenerator;
 -- command handler	
 component commandHandler is
 	port (
-		reset	   : in    std_logic;
-		clock	   : in	   std_logic;
-        clock_out  : in	   std_logic;        
-        din		   : in    std_logic_vector(31 downto 0);
-        din_valid  : in    std_logic;
-        params     : out   RX_Param_jcpll_type;
-        params_acc : out   RX_Param_acc_type
+		reset	       : in    std_logic;
+		clock	       : in	   std_logic;
+        clock_out      : in	   std_logic;        
+        din		       : in    std_logic_vector(31 downto 0);
+        din_valid      : in    std_logic;
+        params         : out   RX_Param_jcpll_type;
+        params_syncAcc : out   RX_Param_jcpll_type;
+        params_acc     : out   RX_Param_acc_type
 		);
 end component;
 
@@ -103,31 +104,32 @@ end component;
 -- data handler
 component dataHandler is
 	port (
-		reset						: 	in   	std_logic;
-		clock						: 	in		std_logic;       
-		serialRx					:	in		serialRx_type;
-		trigInfo					:  in 	trigInfo_type;
-        rxParams           :    in      RX_Param_jcpll_type;
-		Wlkn_fdbk_current		:	in		natArray;
-		pro_vdd					:	in		natArray16;
-		vcdl_count				:	in		array32;
-		timestamp				:	in		std_logic_vector(63 downto 0);
-		beamgate_timestamp	: 	in 	std_logic_vector(63 downto 0);
-		ppsCount  		    	:	in		std_logic_vector(31 downto 0);
-		beamGateCount     	:	in		std_logic_vector(31 downto 0);
-		eventCount				:	in		std_logic_vector(31 downto 0);
-		IDrequest      		:	in		std_logic;
-		readRequest				:	in		std_logic;
-      trigTransferDone		:	out	std_logic;
-      ramAddress           :  out   natural;
-      ramData              :  in    wordArray;
-      txData	            : 	out	std_logic_vector(7 downto 0);
-		txReq	 	   			: 	out	std_logic;
-      txAck			         : 	in 	std_logic; 
-		selfTrig_rateCount	:  in 	selfTrig_rateCount_array;
-		trig_rateCount			:	in		natural;
-		trig_frameType			:	in		natural;
-		txBusy					:	out	std_logic			-- a flag used for diagnostics and frame time measurement
+      reset				 : 	in   	std_logic;
+      clock				 : 	in		std_logic;
+      jcpll_clock        :  in      std_logic;
+      serialRx			 :	in		serialRx_type;
+      trigInfo			 :  in 	trigInfo_type;
+      rxParams           :  in      RX_Param_jcpll_type;
+      Wlkn_fdbk_current	 :	in		natArray;
+      pro_vdd			 :	in		natArray16;
+      vcdl_count		 :	in		array32;
+      timestamp			 :	in		std_logic_vector(63 downto 0);
+      beamgate_timestamp : 	in 	std_logic_vector(63 downto 0);
+      ppsCount  		 :	in		std_logic_vector(31 downto 0);
+      beamGateCount      :	in		std_logic_vector(31 downto 0);
+      eventCount		 :	in		std_logic_vector(31 downto 0);
+      IDrequest      	 :	in		std_logic;
+      readRequest		 :	in		std_logic;
+      trigTransferDone	 :	out	std_logic;
+      ramAddress         :  out   natural;
+      ramData            :  in    wordArray;
+      txData	         : 	out	std_logic_vector(7 downto 0);
+      txReq	 	   		 : 	out	std_logic;
+      txAck			     : 	in 	std_logic; 
+      selfTrig_rateCount :  in 	selfTrig_rateCount_array;
+      trig_rateCount	 :	in		natural;
+      trig_frameType	 :	in		natural;
+      txBusy			 :	out	std_logic			-- a flag used for diagnostics and frame time measurement
 );
 end component;
 		
@@ -152,6 +154,7 @@ end component;
 component dacSerial is
   port(
         clock           : in    clock_type;      -- DAC clk ( < 50MHz ) 
+        reset           : in    std_logic;
         dataIn          : in    DACchain_data_type;  	-- array (0 to 1) of dac data
         dac    	      : out   dac_type);
 end component;

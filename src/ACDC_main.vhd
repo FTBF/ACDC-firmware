@@ -104,6 +104,7 @@ architecture vhdl of	ACDC_main is
 	signal 	led_mono		   : std_logic_vector(8 downto 0);
 	
 	signal  rxparams           : RX_Param_jcpll_type;
+    signal  rxparams_syncAcc   : RX_Param_jcpll_type;
     signal  rxparams_acc       : RX_Param_acc_type;
 		
 begin
@@ -271,13 +272,14 @@ rx_cmd_map: rxCommand PORT map
 --	COMMAND HANDLER
 ------------------------------------
 cmd_handler_map: commandHandler port map (
-		reset	   => reset.acc,
-		clock	   => clock.acc40,
-        clock_out  => clock.sys,     
-        din		   =>	cmd.word,	
-        din_valid  => cmd.valid,
-        params     => rxparams,
-        params_acc => rxparams_Acc
+		reset	       => reset.acc,
+		clock	       => clock.acc40,
+        clock_out      => clock.sys,     
+        din		       => cmd.word,	
+        din_valid      => cmd.valid,
+        params         => rxparams,
+        params_syncAcc => rxparams_syncAcc,
+        params_acc     => rxparams_Acc
 		);
 
 calEnable 	<= rxparams_acc.calEnable;
@@ -288,11 +290,24 @@ reset.request <= rxparams_acc.reset_request;
 ------------------------------------
 -- transmits the contents of the ram buffers plus other info over the uart
 dataHandler_map: dataHandler port map (
+        -- clock and reset signals
 		reset			   => reset.acc,
 		clock			   => clock.acc40,
+        jcpll_clock        => clock.sys,
+
+        --data stream and control signals
+        txData	           => serialTx.data,
+		txReq	 	   	   => serialTx.req,
+        txAck              => serialTx.ack,
+		txBusy			   => txBusy,
+
+        --ACC clock parameters 
 		serialRX		   => serialRx,
-		trigInfo		   => trigInfo,
-        rxparams           => rxparams,
+        rxparams           => rxparams_syncAcc,
+		IDrequest		   => rxparams_acc.IDrequest,
+
+        --jc pll clock parameters, these need CDC!!!
+        trigInfo		   => trigInfo,
 		Wlkn_fdbk_current  => Wlkn_fdbk_current,
 		pro_vdd			   => pro_vdd,
 		vcdl_count		   => vcdl_count,
@@ -301,18 +316,13 @@ dataHandler_map: dataHandler port map (
 		ppsCount  		   => ppsCount,
 		beamGateCount      => beamGateCount,
         eventCount		   => eventCount,
-		IDrequest		   => rxparams_acc.IDrequest,
 		readRequest		   => transfer_request,
         trigTransferDone   => serialTx.trigTransferDone,
         ramAddress         => readAddress,
         ramData            => readData,
-        txData	           => serialTx.data,
-		txReq	 	   	   => serialTx.req,
-        txAck              => serialTx.ack,
 		selfTrig_rateCount => selfTrig_rateCount,
 		trig_rateCount	   => trig_rateCount,
-		trig_frameType	   => trig_frameType,
-		txBusy			   => txBusy
+		trig_frameType	   => trig_frameType
 );
 
 
@@ -462,13 +472,13 @@ begin
 		for i in 0 to N-1 loop	-- for each PSEC4 chip				
 			--
 			dacData(chain)(device)(0) <= rxparams.Vbias(i);
-			dacData(chain)(device)(1) <= rxparams.selfTrig.threshold(i);
-			dacData(chain)(device)(2) <= rxparams.selfTrig.threshold(i);
+			dacData(chain)(device)(1) <= rxparams.selfTrig.threshold(i, 0);
+			dacData(chain)(device)(2) <= rxparams.selfTrig.threshold(i, 1);
 			dacData(chain)(device)(3) <= pro_vdd(i);
 			dacData(chain)(device)(4) <= 4095 - pro_vdd(i);
 			dacData(chain)(device)(5) <= 4095 - rxparams.dll_vdd(i);
 			dacData(chain)(device)(6) <= rxparams.dll_vdd(i);
-			dacData(chain)(device)(7) <= rxparams.selfTrig.threshold(i);
+			dacData(chain)(device)(7) <= rxparams.selfTrig.threshold(i, 2);
 		
 			-- increment counters
 			device := device + 1;		
@@ -476,22 +486,22 @@ begin
 	
 		end loop;
 
-        dacData(3)(0)(0) <= rxparams.selfTrig.threshold(0);
-        dacData(3)(0)(1) <= rxparams.selfTrig.threshold(0);
-        dacData(3)(0)(2) <= rxparams.selfTrig.threshold(0);
-        dacData(3)(0)(3) <= rxparams.selfTrig.threshold(1);
-        dacData(3)(0)(4) <= rxparams.selfTrig.threshold(1);
-        dacData(3)(0)(5) <= rxparams.selfTrig.threshold(1);
-        dacData(3)(0)(6) <= rxparams.selfTrig.threshold(2);
+        dacData(3)(0)(0) <= rxparams.selfTrig.threshold(0, 3);
+        dacData(3)(0)(1) <= rxparams.selfTrig.threshold(0, 4);
+        dacData(3)(0)(2) <= rxparams.selfTrig.threshold(0, 5);
+        dacData(3)(0)(3) <= rxparams.selfTrig.threshold(1, 3);
+        dacData(3)(0)(4) <= rxparams.selfTrig.threshold(1, 4);
+        dacData(3)(0)(5) <= rxparams.selfTrig.threshold(1, 5);
+        dacData(3)(0)(6) <= rxparams.selfTrig.threshold(2, 3);
         dacData(3)(0)(7) <= 0;
-        dacData(3)(1)(0) <= rxparams.selfTrig.threshold(3);
-        dacData(3)(1)(1) <= rxparams.selfTrig.threshold(3);
-        dacData(3)(1)(2) <= rxparams.selfTrig.threshold(3);
-        dacData(3)(1)(3) <= rxparams.selfTrig.threshold(4);
-        dacData(3)(1)(4) <= rxparams.selfTrig.threshold(4);
-        dacData(3)(1)(5) <= rxparams.selfTrig.threshold(4);
-        dacData(3)(1)(6) <= rxparams.selfTrig.threshold(2);
-        dacData(3)(1)(7) <= rxparams.selfTrig.threshold(2);
+        dacData(3)(1)(0) <= rxparams.selfTrig.threshold(3, 3);
+        dacData(3)(1)(1) <= rxparams.selfTrig.threshold(3, 4);
+        dacData(3)(1)(2) <= rxparams.selfTrig.threshold(3, 5);
+        dacData(3)(1)(3) <= rxparams.selfTrig.threshold(4, 3);
+        dacData(3)(1)(4) <= rxparams.selfTrig.threshold(4, 4);
+        dacData(3)(1)(5) <= rxparams.selfTrig.threshold(4, 5);
+        dacData(3)(1)(6) <= rxparams.selfTrig.threshold(2, 4);
+        dacData(3)(1)(7) <= rxparams.selfTrig.threshold(2, 5);
 	end if;
 end process;
 	
@@ -499,6 +509,7 @@ end process;
 dacSerial_gen: for i in 0 to 3 generate		-- 3x dac daisy chain
 	dacSerial_map: dacSerial port map(
         clock			=> clock,
+        reset        => reset.global,
         dataIn       => dacData(i),			-- data values (0 to 1)(0 to 7)  =  (chain device number)(device channel)
         dac   			=> dac(i));				-- output pins to dac chip
 end generate;

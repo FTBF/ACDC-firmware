@@ -89,7 +89,7 @@ constant RAM_ADR_SIZE  	: integer   := 14;
 type natArray	 	is array (N-1 downto 0) of natural;	-- 32 bits range by default
 type natArray24 	is array (N-1 downto 0) of natural range 0 to 16777215;
 type natArray16	is array (N-1 downto 0) of natural range 0 to 65535;
-type natArray12 	is array (N-1 downto 0) of natural range 0 to 4095;
+type natArray12 	is array (N-1 downto 0, M-1 downto 0) of natural range 0 to 4095;
 type natArray5 	is array (N-1 downto 0) of natural range 0 to 31;
 type natArray4 	is array (N-1 downto 0) of natural range 0 to 15;
 type natArray3 	is array (N-1 downto 0) of natural range 0 to 7;

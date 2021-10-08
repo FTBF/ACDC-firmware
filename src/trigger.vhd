@@ -583,11 +583,11 @@ trigInfo(1,3) <= "0000000000" & selfTrig.mask(3);
 trigInfo(1,4) <= "0000000000" & selfTrig.mask(4);
 
 --
-trigInfo(2,0) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(0), 12));
-trigInfo(2,1) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(1), 12));
-trigInfo(2,2) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(2), 12));
-trigInfo(2,3) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(3), 12));
-trigInfo(2,4) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(4), 12));
+trigInfo(2,0) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(0, 0), 12));
+trigInfo(2,1) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(1, 0), 12));
+trigInfo(2,2) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(2, 0), 12));
+trigInfo(2,3) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(3, 0), 12));
+trigInfo(2,4) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(4, 0), 12));
 
 
 

@@ -26,7 +26,8 @@ use work.defs.all;
 entity dataHandler is
   port (
     reset			   : 	in   	std_logic;
-    clock			   : 	in		std_logic;      
+    clock			   : 	in		std_logic;
+    jcpll_clock        :    in      std_logic;
     serialRx		   :	in		serialRx_type;
     trigInfo		   :    in 	    trigInfo_type;
     rxParams           :    in      RX_Param_jcpll_type;
@@ -426,7 +427,7 @@ begin
 		info(i,1) <= std_logic_vector(to_unsigned(Wlkn_fdbk_current(i),16));
 		info(i,2) <= std_logic_vector(to_unsigned(rxparams.RO_target(i),16));
 		info(i,3) <= std_logic_vector(to_unsigned(rxparams.vbias(i),16));
-		info(i,4) <= std_logic_vector(to_unsigned(rxparams.selfTrig.threshold(i),16));
+		info(i,4) <= std_logic_vector(to_unsigned(rxparams.selfTrig.threshold(i, 0),16));
 		info(i,5) <= std_logic_vector(to_unsigned(pro_vdd(i),16));
 		info(i,6) <= trigInfo(0,i);
 		info(i,7) <= trigInfo(1,i);

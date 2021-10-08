@@ -21,13 +21,14 @@ use work.components.all;
 
 entity commandHandler is
 	port (
-      reset		   : in    std_logic;
-      clock		   : in	   std_logic;
-      clock_out	   : in	   std_logic;        
-      din		   : in    std_logic_vector(31 downto 0);
-      din_valid	   : in    std_logic;
-      params       : out   RX_Param_jcpll_type;
-      params_acc   : out   RX_Param_acc_type
+      reset		     : in    std_logic;
+      clock		     : in	   std_logic;
+      clock_out	     : in	   std_logic;        
+      din		     : in    std_logic_vector(31 downto 0);
+      din_valid	     : in    std_logic;
+      params         : out   RX_Param_jcpll_type;
+      params_syncAcc : out   RX_Param_jcpll_type;
+      params_acc     : out   RX_Param_acc_type
       );
 end commandHandler;
 
@@ -44,6 +45,8 @@ begin
 -- or they will last for one clock cycle and then reset
 --
 
+params_syncAcc <= params_z;
+  
 -- CDC for sys clk output parameters
 resetn <= not reset;
 param_handshake_sync_1: entity work.param_handshake_sync
@@ -58,11 +61,10 @@ param_handshake_sync_1: entity work.param_handshake_sync
 
    
 COMMAND_HANDLER:	process(clock)
-variable psecMask: 		std_logic_vector(4 downto 0);
+variable psecSel: 		natural range 0 to N;
 variable cmdType: 		std_logic_vector(3 downto 0);
 variable cmdOption: 		std_logic_vector(3 downto 0);
 variable cmdOption2: 		std_logic_vector(3 downto 0);
-variable cmdOptionE: 		std_logic_vector(3 downto 0);
 variable cmdValue: 		std_logic_vector(11 downto 0);
 variable cmdLongVal: 	std_logic_vector(15 downto 0);
 variable acdc_cmd: 		std_logic_vector(31 downto 0);	
@@ -96,8 +98,10 @@ begin
 				-- POWER-ON DEFAULT VALUES
 				--------------------------
 				
-				for i in 0 to N-1 loop
-					params_z.selfTrig.threshold(i)	<= 0;
+                for i in 0 to N-1 loop
+                    for j in 0 to M-1 loop
+                      params_z.selfTrig.threshold(j, i)	<= 0;
+                    end loop;
 					params_z.selfTrig.mask(i) 			<= "000000";
 					params_z.Vbias(i)				<= 16#0800#;
 					params_z.DLL_Vdd(i)			<= 16#0CFF#; 
@@ -149,69 +153,47 @@ begin
 			cmdOption2			:= din(15 downto 12);	
 			
 			-- when psecMask used: ("A" command only)
-			cmdOptionE			:= din(19 downto 17) & "0";	-- even numbers only
-			psecMask				:= din(16 downto 12);
+			psecSel				:= to_integer(unsigned(din(14 downto 12)));
 
 			
 			
 			
          case cmdType is  -- command type                
 
-
-			
-			
-			
 					when x"A" =>	-- set parameter
-
 					
-						case cmdOptionE is
-						
+						case cmdOption is
 						
 							when x"0" =>	-- dll vdd							
-								
-								for j in 4 downto 0 loop
-									if (psecMask(j) = '1') then
-										params_z.DLL_Vdd(j) <= to_integer(unsigned(cmdValue));
-									end if;
-								end loop;
+                                params_z.DLL_Vdd(psecSel) <= to_integer(unsigned(cmdValue));
 
-								
 							when x"2" =>	-- pedestal offset 
-					
-								for j in 4 downto 0 loop
-									if (psecMask(j) = '1') then
-										params_z.Vbias(j) <= to_integer(unsigned(cmdValue));
-									end if;
-								end loop;
-
+                                params_z.Vbias(psecSel) <= to_integer(unsigned(cmdValue));
 	
 							when x"4" =>	-- ring oscillator feedback 
-					
-								for j in 4 downto 0 loop
-									if (psecMask(j) = '1') then 
-										params_z.RO_target(j) <= to_integer(unsigned(cmdValue));
-									end if;
-								end loop;
-
+                                params_z.RO_target(psecSel) <= to_integer(unsigned(cmdValue));
 								
 							when x"6" =>	-- self trigger threshold
+                                params_z.selfTrig.threshold(psecSel, 0) <= to_integer(unsigned(cmdValue));
 								
-								for j in 4 downto 0 loop
-									if (psecMask(j) = '1') then
-										params_z.selfTrig.threshold(j) <= to_integer(unsigned(cmdValue));
-									end if;
-								end loop;
+							when x"7" =>	-- self trigger threshold
+                                params_z.selfTrig.threshold(psecSel, 1) <= to_integer(unsigned(cmdValue));
 								
+							when x"8" =>	-- self trigger threshold
+                                params_z.selfTrig.threshold(psecSel, 2) <= to_integer(unsigned(cmdValue));
+								
+							when x"9" =>	-- self trigger threshold
+                                params_z.selfTrig.threshold(psecSel, 3) <= to_integer(unsigned(cmdValue));
+								
+							when x"A" =>	-- self trigger threshold
+                                params_z.selfTrig.threshold(psecSel, 4) <= to_integer(unsigned(cmdValue));
+								
+							when x"B" =>	-- self trigger threshold
+                                params_z.selfTrig.threshold(psecSel, 5) <= to_integer(unsigned(cmdValue));
 								
 							when others => null;
 								
-								
-								
 						end case;
-						
-						
-						
-						
 						
 						
 					when x"B" =>	-- trigger 

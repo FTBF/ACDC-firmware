@@ -126,7 +126,7 @@ set_location_assignment PIN_AB9 -to calEnable[5]
 set_location_assignment PIN_AA7 -to calEnable[4]
 set_location_assignment PIN_AF6 -to calEnable[3]
 set_location_assignment PIN_AC12 -to calEnable[2]
-set_location_assignment PIN_Y9  -to calEnable[1]
+set_location_assignment PIN_Y9 -to calEnable[1]
 set_location_assignment PIN_AC9 -to calEnable[0]
 set_location_assignment PIN_A25 -to PSEC4_trigSign
 set_location_assignment PIN_AE21 -to PSEC4_out[4].trigClear
@@ -424,4 +424,6 @@ set_global_assignment -name VHDL_FILE lib/fallingEdgeDetect.vhd
 set_location_assignment PIN_AA9 -to debug2
 set_location_assignment PIN_AA17 -to debug3
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to jcpll_ctrl.spi_miso
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "0 MHz" -to calEnable[1]
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name QIP_FILE src/QIPcomponents/ddr_iobuf.qip

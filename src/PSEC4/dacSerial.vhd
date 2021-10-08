@@ -28,6 +28,7 @@ use work.defs.all;
 entity dacSerial is
   port(
         clock           : in    clock_type;
+        reset           : in    std_logic;
         dataIn          : in    DACchain_data_type;  	-- array (0 to 1) of dac data
         dac    	      : out   dac_type
 	);
@@ -59,7 +60,14 @@ variable address : std_logic_vector(3 downto 0);	-- slv version of channel numbe
 variable chainData : std_logic_vector(63 downto 0);	-- the data that will be written serially
 variable k: natural;	-- a clock cycle counter to slow down the timings so that they are compatible with the dac
 begin 
-	if rising_edge(clock.sys) then         
+    if rising_edge(clock.sys) then
+      if reset = '1' then
+        STATE <= IDLE;
+        dac.load <= '1';
+        dac.serialClock <= '0';
+        dac.serialData <= '0';
+      
+      else
         
 		case STATE is
       
@@ -127,17 +135,9 @@ begin
 
 
 		end case;
-	end if;
+      end if;
+    end if;
 end process;
      
-	  
-	  
-	  
-	  
-	  
-	  
-	  
-	  
-	  
 end vhdl;
 
