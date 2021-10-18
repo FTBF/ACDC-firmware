@@ -325,14 +325,32 @@ component Wilkinson_Feedback_Loop is
         );
 end component;
 
-	
 
-  
-   
-   
-   
-    
+-- ddr_io
+component ddr_iobuf is
+  port (
+    datain_h : IN  STD_LOGIC_VECTOR (1 DOWNTO 0);
+    datain_l : IN  STD_LOGIC_VECTOR (1 DOWNTO 0);
+    outclock : IN  STD_LOGIC;
+    dataout  : OUT STD_LOGIC_VECTOR (1 DOWNTO 0));
+end component ddr_iobuf;
 
+-- high speed serial IO 
+component serialTx_highSpeed is
+  port (
+    clk    : in  std_logic;
+    reset  : in  reset_type;
+    output : out std_logic_vector(1 downto 0));
+end component serialTx_highSpeed;
+
+
+component serial_pll is
+  port (
+    inclk0 : IN  STD_LOGIC := '0';
+    c0     : OUT STD_LOGIC;
+    c1     : OUT STD_LOGIC;
+    locked : OUT STD_LOGIC);
+end component serial_pll;
 
 end components;
 

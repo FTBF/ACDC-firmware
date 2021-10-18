@@ -106,6 +106,8 @@ architecture vhdl of	ACDC_main is
 	signal  rxparams           : RX_Param_jcpll_type;
     signal  rxparams_syncAcc   : RX_Param_jcpll_type;
     signal  rxparams_acc       : RX_Param_acc_type;
+
+    signal  serialTx_data      : std_logic_vector(1 downto 0);
 		
 begin
 
@@ -169,8 +171,8 @@ begin
   end if;
 end process;
 
--- reset synchronizer 
-RESSET_SYNC : process(clock.sys)
+-- reset synchronizers
+RESET_SYNC : process(clock.sys)
   variable reset_sync_1 : std_logic;
   variable reset_sync_2 : std_logic;
 begin
@@ -178,6 +180,28 @@ begin
     reset_sync_1 := reset.acc;
     reset_sync_2 := reset_sync_1;
     reset.global <= reset_sync_2;
+  end if;
+end process;
+
+RESET_SYNC_25MHz : process(clock.serial25)
+  variable reset_sync_1 : std_logic;
+  variable reset_sync_2 : std_logic;
+begin
+  if rising_edge(clock.serial25) then
+    reset_sync_1 := reset.acc;
+    reset_sync_2 := reset_sync_1;
+    reset.serial <= reset_sync_2;
+  end if;
+end process;
+
+RESET_SYNC_125MHz : process(clock.serial125)
+  variable reset_sync_1 : std_logic;
+  variable reset_sync_2 : std_logic;
+begin
+  if rising_edge(clock.serial125) then
+    reset_sync_1 := reset.serial;
+    reset_sync_2 := reset_sync_1;
+    reset.serialFast <= reset_sync_2;
   end if;
 end process;
 
@@ -204,8 +228,8 @@ clockGen_inst: ClockGenerator
 ------------------------------------
 LVDS_out(0) <=	serialTx.serial;	--  serial comms tx
 LVDS_out(1) <=	'0';	-- not used -- PLL CLK OUTPUT ONLY!!!
-LVDS_out(2) <=	'0';	-- not used
-LVDS_out(3) <=	'0';	-- not used
+LVDS_out(2) <=	serialTx_data(0);	-- not used
+LVDS_out(3) <=	serialTx_data(1);	-- not used
 serialRx.serial 	<= LVDS_in(0);	--  serial comms rx
 acc_trig		 		<= LVDS_in(1);
 
@@ -248,8 +272,14 @@ serialRx_map : synchronousRx_8b10b
 		dout_valid		   => serialRx.valid
 	);
 
-	
-	
+------------------------------------
+--	SERIAL TX high speed
+------------------------------------	
+serialTx_highSpeed_inst: serialTx_highSpeed
+  port map (
+    clk    => clock.serial125,
+    reset  => reset,
+    output => serialTx_data);
 	
 	
 ------------------------------------

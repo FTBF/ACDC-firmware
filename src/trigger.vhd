@@ -65,10 +65,12 @@ architecture vhdl of trigger is
 
 	signal 	acc_trig_latch_z:	std_logic;
 	signal 	acc_trig_latch_z2: std_logic;
+    signal  acc_trig_latch_z3 : std_logic;
 	signal 	trig_latch:	std_logic;
 	signal 	trig_latch_x:	std_logic;
 	signal 	trig_latch_z:	std_logic;
 	signal 	trig_latch_z2:	std_logic;
+    signal 	trig_latch_z3:	std_logic;  
 	signal	trig_common: std_logic;
 	signal	resetRequest: std_logic;
 	signal	timestamp_z: std_logic_vector(63 downto 0);
@@ -170,20 +172,13 @@ begin
 	if (rising_edge(clock.x8)) then
 		trig_latch_z <= trig_latch;		-- synchronize to fast clock
 		trig_latch_z2 <= trig_latch_z;
-		if (trig_latch_z = '1' and trig_latch_z2 = '0') then	-- rising edge
+        trig_latch_z3 <= trig_latch_z2;
+		if (trig_latch_z2 = '1' and trig_latch_z3 = '0') then	-- rising edge
 			timestamp_z <= systemTime;
 		end if;
 	end if;
 end process;
 
-
-
-
-
-	
-	
-	
-	
 ---------------------------------------
 -- BEAMGATE TIMESTAMP GENERATOR
 ---------------------------------------
@@ -194,7 +189,8 @@ begin
 	if (rising_edge(clock.x8)) then
 		acc_trig_latch_z <= acc_trig;		-- synchronize to fast clock
 		acc_trig_latch_z2 <= acc_trig_latch_z;
-		if (acc_trig_latch_z = '1' and acc_trig_latch_z2 = '0') then	-- rising edge
+        acc_trig_latch_z3 <= acc_trig_latch_z2;
+		if (acc_trig_latch_z2 = '1' and acc_trig_latch_z3 = '0') then	-- rising edge
 			beamgate_timestamp_z <= systemTime;
 		end if;
 	end if;

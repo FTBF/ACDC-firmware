@@ -146,10 +146,13 @@ type clock_type is record
     acc40			:	std_logic;
     acc160				:	std_logic;
     acc320				:	std_logic;
+    serial25    : std_logic;
+    serial125   : std_logic;
     usb         :	std_logic;  
     update		:	std_logic;
     altpllLock  :	std_logic;
-    accpllLock  :	std_logic;  
+    accpllLock  :	std_logic;
+    serialpllLock : std_logic;
 end record;
 
 
@@ -303,6 +306,8 @@ type PSEC4_out_array_type is array (0 to N-1) of PSEC4_out_type;
 type reset_type is record
     global		:	std_logic;
     acc         :   std_logic;
+    serial      :   std_logic;
+    serialFast  :   std_logic;
 	request		:	std_logic;
 end record;
 

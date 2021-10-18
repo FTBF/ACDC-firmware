@@ -18,7 +18,7 @@ package LibDG is
 
 
 
-
+constant PRBS_WIDTH : natural := 16;
 
 
 -- 8b10b K codes
@@ -241,9 +241,20 @@ end component;
 
 
 
+component prbsGenerator is
+  generic (
+    ITERATIONS : natural;
+    POLY       : std_logic_vector(PRBS_WIDTH-1 downto 0));
+  port (
+    clk    : in  std_logic;
+    reset  : in  std_logic;
+    input  : in  std_logic_vector(PRBS_WIDTH-1 downto 0);
+    output : out std_logic_vector(PRBS_WIDTH-1 downto 0));
+end component prbsGenerator;
 
 
-end LibDG;
+
+End LibDG;
 
 
 

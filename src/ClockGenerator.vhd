@@ -17,6 +17,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use work.components.pll;
 use work.components.acc_pll;
+use work.components.serial_pll;
 use work.LibDG.all;
 use work.defs.all;
 
@@ -64,14 +65,19 @@ PLL_MAP : pll port map
 );     
 				
 acc_pll_inst : acc_pll PORT MAP (
-		inclk0	 => clockIn.accOsc,
+		inclk0	 => clock.serial25,
 		c0	 => clock.acc40,
 		c1	 => clock.acc160,
 		c2	 => clock.acc320,
 		locked	 => clock.accpllLock
 	);
 
-	
+serial_pll_inst: serial_pll
+  port map (
+    inclk0 => clockIn.accOsc,
+    c0     => clock.serial125,
+    c1     => clock.serial25,
+    locked => clock.serialpllLock);
 	
 ---------------------------------------
 -- UPDATE CLOCK GENERATOR
