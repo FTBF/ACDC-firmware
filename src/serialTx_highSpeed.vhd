@@ -31,8 +31,8 @@ begin  -- architecture vhdl
 
   ddr_iobuf_inst: ddr_iobuf
     port map (
-      datain_h => prbs_pattern(0) & prbs_pattern(0),
-      datain_l => prbs_pattern(1) & prbs_pattern(1),
+      datain_h => prbs_pattern(1) & prbs_pattern(1),
+      datain_l => prbs_pattern(0) & prbs_pattern(0),
       outclock => clk,
       dataout  => output);
 
