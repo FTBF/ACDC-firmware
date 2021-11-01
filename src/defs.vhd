@@ -416,6 +416,7 @@ type RX_Param_acc_type is record
   PLL_resetRequest        : std_logic;   
   PLL_ConfigRequest       : std_logic;   
   PLL_ConfigReg           : std_logic_vector(31 downto 0);   
+  outputMode              : std_logic_vector(1 downto 0);
 end record;
 
 	

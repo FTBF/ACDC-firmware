@@ -549,11 +549,6 @@ begin
 end process;
 
 
-				
-
-				
-				
-				
 	
 ------------------
 -- TRIG INFO
@@ -584,11 +579,6 @@ trigInfo(2,1) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(1, 0), 1
 trigInfo(2,2) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(2, 0), 12));
 trigInfo(2,3) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(3, 0), 12));
 trigInfo(2,4) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(4, 0), 12));
-
-
-
-
-
 
 
 
@@ -631,11 +621,6 @@ begin
 		
 	end if;
 end process;
-
-
-
-
-
 
 	
 end vhdl;

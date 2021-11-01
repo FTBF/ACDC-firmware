@@ -111,8 +111,9 @@ begin
 				params_z.testMode.sequencedPsecData <= '0';
 				params_z.testMode.trig_noTransfer <= '0';
                 params_acc.PLL_ConfigRequest <= '0';		 
-                params_acc.PLL_resetRequest <= '0';	  
-				
+                params_acc.PLL_resetRequest <= '0';	 
+                params_acc.outputMode <= "00";
+                
 				-- trig
 				params_z.trigSetup.mode 	<= 0;
 				params_z.trigSetup.sma_invert <= '0';
@@ -319,6 +320,7 @@ begin
                             when x"3" => params_acc.PLL_ConfigReg(15 downto 0) <= cmdLongVal;
                             when x"4" => params_acc.PLL_ConfigReg(31 downto 16) <= cmdLongVal;
                             when x"5" => params_acc.PLL_ConfigRequest <= '1';
+                            when x"6" => params_acc.outputMode <= cmdLongVal(1 downto 0);           
 
 							when x"F" => params_acc.reset_request <= '1';	-- global reset 
 							when others => null;

@@ -338,9 +338,10 @@ end component ddr_iobuf;
 -- high speed serial IO 
 component serialTx_highSpeed is
   port (
-    clk    : in  std_logic;
-    reset  : in  reset_type;
-    output : out std_logic_vector(1 downto 0));
+    clk        : in  clock_type;
+    reset      : in  reset_type;
+    outputMode : in  std_logic_vector(1 downto 0);
+    output     : out std_logic_vector(1 downto 0)); 
 end component serialTx_highSpeed;
 
 

@@ -71,7 +71,7 @@ IncrementalCompilation=0
 AdditionalOptions=
 
 [HierarchyViewer]
-HierarchyInformation=acdc_test_tb|vhdl|0  
+HierarchyInformation=acdc_test_tb|vhdl|0    
 ShowHide=ShowTopLevel
 Selected=
 

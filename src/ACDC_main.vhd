@@ -228,8 +228,8 @@ clockGen_inst: ClockGenerator
 ------------------------------------
 LVDS_out(0) <=	serialTx.serial;	--  serial comms tx
 LVDS_out(1) <=	'0';	-- not used -- PLL CLK OUTPUT ONLY!!!
-LVDS_out(2) <=	serialTx_data(0);	-- not used
-LVDS_out(3) <=	serialTx_data(1);	-- not used
+LVDS_out(2) <=	serialTx_data(0);	-- data links
+LVDS_out(3) <=	serialTx_data(1);	-- data links
 serialRx.serial 	<= LVDS_in(0);	--  serial comms rx
 acc_trig		 		<= LVDS_in(1);
 
@@ -277,8 +277,9 @@ serialRx_map : synchronousRx_8b10b
 ------------------------------------	
 serialTx_highSpeed_inst: serialTx_highSpeed
   port map (
-    clk    => clock.serial125,
+    clk    => clock,
     reset  => reset,
+    outputMode => rxparams_acc.outputMode,
     output => serialTx_data);
 	
 	
