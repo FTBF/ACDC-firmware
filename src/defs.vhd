@@ -107,6 +107,8 @@ type array2 	is array	(N-1 downto 0) of std_logic_vector(1 downto 0);
 type bitArray 	is array (N-1 downto 0) of std_logic;	
 type trigger_array 		is array (5 downto 0) of 	std_logic_vector(15 downto 0);
 
+type hs_input_array is array (1 downto 0) of std_logic_vector(7 downto 0);
+
 constant trigRate_MaxCount: integer:= 60000;
 
 type selfTrig_rateCount_array is array (0 to 4, 0 to 5) of natural;

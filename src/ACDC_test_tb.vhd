@@ -235,46 +235,52 @@ tx_comms_map : synchronousTx_8b10b_ACC port map (
 	-- set transfer enable = true
 	sendword(X"FFB50000", cmd_in, cmd_ready);
 						   
-	sendword(X"FFA60001", cmd_in, cmd_ready);
-	sendword(X"FFA70002", cmd_in, cmd_ready);
-	sendword(X"FFA80003", cmd_in, cmd_ready);
-	sendword(X"FFA90004", cmd_in, cmd_ready);
-	sendword(X"FFAA0005", cmd_in, cmd_ready);
-	sendword(X"FFAB0006", cmd_in, cmd_ready);
-						   
-	sendword(X"FFA61011", cmd_in, cmd_ready);
-	sendword(X"FFA71012", cmd_in, cmd_ready);
-	sendword(X"FFA81013", cmd_in, cmd_ready);
-	sendword(X"FFA91014", cmd_in, cmd_ready);
-	sendword(X"FFAA1015", cmd_in, cmd_ready);
-	sendword(X"FFAB1016", cmd_in, cmd_ready);
-						   
-	sendword(X"FFA62021", cmd_in, cmd_ready);
-	sendword(X"FFA72022", cmd_in, cmd_ready);
-	sendword(X"FFA82023", cmd_in, cmd_ready);
-	sendword(X"FFA92024", cmd_in, cmd_ready);
-	sendword(X"FFAA2025", cmd_in, cmd_ready);
-	sendword(X"FFAB2026", cmd_in, cmd_ready);
-						   
-	sendword(X"FFA63031", cmd_in, cmd_ready);
-	sendword(X"FFA73032", cmd_in, cmd_ready);
-	sendword(X"FFA83033", cmd_in, cmd_ready);
-	sendword(X"FFA93034", cmd_in, cmd_ready);
-	sendword(X"FFAA3035", cmd_in, cmd_ready);
-	sendword(X"FFAB3036", cmd_in, cmd_ready);
-						   
-	sendword(X"FFA64041", cmd_in, cmd_ready);
-	sendword(X"FFA74042", cmd_in, cmd_ready);
-	sendword(X"FFA84043", cmd_in, cmd_ready);
-	sendword(X"FFA94044", cmd_in, cmd_ready);
-	sendword(X"FFAA4045", cmd_in, cmd_ready);
-	sendword(X"FFAB4046", cmd_in, cmd_ready);
+--	sendword(X"FFA60001", cmd_in, cmd_ready);
+--	sendword(X"FFA70002", cmd_in, cmd_ready);
+--	sendword(X"FFA80003", cmd_in, cmd_ready);
+--	sendword(X"FFA90004", cmd_in, cmd_ready);
+--	sendword(X"FFAA0005", cmd_in, cmd_ready);
+--	sendword(X"FFAB0006", cmd_in, cmd_ready);
+--						   
+--	sendword(X"FFA61011", cmd_in, cmd_ready);
+--	sendword(X"FFA71012", cmd_in, cmd_ready);
+--	sendword(X"FFA81013", cmd_in, cmd_ready);
+--	sendword(X"FFA91014", cmd_in, cmd_ready);
+--	sendword(X"FFAA1015", cmd_in, cmd_ready);
+--	sendword(X"FFAB1016", cmd_in, cmd_ready);
+--						   
+--	sendword(X"FFA62021", cmd_in, cmd_ready);
+--	sendword(X"FFA72022", cmd_in, cmd_ready);
+--	sendword(X"FFA82023", cmd_in, cmd_ready);
+--	sendword(X"FFA92024", cmd_in, cmd_ready);
+--	sendword(X"FFAA2025", cmd_in, cmd_ready);
+--	sendword(X"FFAB2026", cmd_in, cmd_ready);
+--						   
+--	sendword(X"FFA63031", cmd_in, cmd_ready);
+--	sendword(X"FFA73032", cmd_in, cmd_ready);
+--	sendword(X"FFA83033", cmd_in, cmd_ready);
+--	sendword(X"FFA93034", cmd_in, cmd_ready);
+--	sendword(X"FFAA3035", cmd_in, cmd_ready);
+--	sendword(X"FFAB3036", cmd_in, cmd_ready);
+--						   
+--	sendword(X"FFA64041", cmd_in, cmd_ready);
+--	sendword(X"FFA74042", cmd_in, cmd_ready);
+--	sendword(X"FFA84043", cmd_in, cmd_ready);
+--	sendword(X"FFA94044", cmd_in, cmd_ready);
+--	sendword(X"FFAA4045", cmd_in, cmd_ready);
+--	sendword(X"FFAB4046", cmd_in, cmd_ready);
 	
 	wait for 10 us;
+	
+	sendword(X"FFF60001", cmd_in, cmd_ready);
 	
 	LVDS_in(1) <= '1';
 	wait for 200 ns;
 	LVDS_in(1) <= '0';
+	
+	wait for 10 us;
+	
+	sendword(X"FFF60003", cmd_in, cmd_ready);
 	
 	
 	--sendword(X"FFF10000", cmd_in, cmd_ready);

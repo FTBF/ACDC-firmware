@@ -279,6 +279,9 @@ serialTx_highSpeed_inst: serialTx_highSpeed
   port map (
     clk    => clock,
     reset  => reset,
+    input       => (X"AA", X"AA"),
+    input_ready => open,
+    input_valid => "11",
     outputMode => rxparams_acc.outputMode,
     output => serialTx_data);
 	
