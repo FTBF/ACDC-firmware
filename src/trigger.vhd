@@ -217,8 +217,6 @@ type state_type is (
 	COPY_TIMESTAMP,
 	DIGITIZE_INIT, 
 	DIGITIZE_WAIT, 
-	FRAME_TRANSFER_INIT, 
-	FRAME_TRANSFER_WAIT,
 	TRIG_DONE
 );
 	
@@ -267,10 +265,6 @@ begin
 
 		else
 		
-			-- frame transfer control
-			if (trigSetup.transferEnableReq = '1') then transfer_en := true; end if;
-			if (trigSetup.transferDisableReq = '1') then transfer_en := false; end if;
-
 			-- trigger elapsed time counter
 			if (t < 400000000) then t := t + 1; end if;		-- time since trigger
 		
@@ -352,13 +346,7 @@ begin
 				
 					timestamp <= timestamp_z;
 					beamgate_timestamp <= beamgate_timestamp_z;			-- the time value of the most recent rising edge on beamgate
-					if (testMode.trig_noTransfer = '1') then 
-						state := TRIG_DONE;
-					elsif (frameType = frameType_name.pps) then		-- skip the psec digitization stage for pps frame as only timestamp info is required
-						state := FRAME_TRANSFER_INIT;
-					else
-						state := DIGITIZE_INIT;
-					end if;
+                    state := DIGITIZE_INIT;
 						
 				
 				
@@ -373,33 +361,14 @@ begin
 				when DIGITIZE_WAIT =>				-- wait for the PSEC chip data to be transferred to the fpga RAM
 				
 					digitize_request <= '0';
-					if (digitize_done = '1') then state := FRAME_TRANSFER_INIT; end if;
+					if (digitize_done = '1') then state := TRIG_DONE; end if;
 						
 										
 				
 				
-				when FRAME_TRANSFER_INIT =>				-- wait until the ACC is ready to receive a data frame
-					
-					if (transfer_en) then			
-						transfer_request <= '1';
-						transfer_en := false;
-						state := FRAME_TRANSFER_wAIT;
-					end if;
-				
-				
-				
-				
-				when FRAME_TRANSFER_WAIT =>						-- transfer data to the acc
-				
-					transfer_request <= '0';
-					if (transfer_done = '1') then	state := TRIG_DONE; end if;
-					
-					
-				
-				
 				when TRIG_DONE =>
 
-					trig_valid_flag := '1';					
+					trig_valid_flag := '1';
 					case frameType is
 						when frameType_name.pps => ppsCount <= ppsCount + 1;				 
 						when frameType_name.psec => eventCount <= eventCount + 1; trig_event_flag := '1';	
@@ -430,14 +399,7 @@ begin
 		
 			trig_event <= trig_event_flag;
 				
-				
-					
-				
-				
-				
 		end if;
-		
-		if (transfer_en) then transfer_enable <= '1'; else transfer_enable <= '0'; end if;
 		
 	end if;
 	

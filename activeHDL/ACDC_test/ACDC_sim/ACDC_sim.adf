@@ -20,7 +20,7 @@ LANGUAGE=VHDL
 REFRESH_FLOW=1
 FLOWTOOLS=NONE
 FAMILY=Intel CycloneIVGX
-fileopenfolder=C:\Users\Pastika\Documents\Quartus\ACDC-firmware-master_RevC\ACDC-firmware\src\QIPcomponents
+fileopenfolder=C:\Users\Pastika\Documents\Quartus\ACDC-firmware-master_RevC\ACDC-firmware\src
 
 [Folders]
 Name0=Event Lists
@@ -71,7 +71,7 @@ IncrementalCompilation=0
 AdditionalOptions=
 
 [HierarchyViewer]
-HierarchyInformation=acdc_test_tb|vhdl|0    
+HierarchyInformation=acdc_test_tb|vhdl|0   
 ShowHide=ShowTopLevel
 Selected=
 
@@ -132,6 +132,9 @@ Synchronize=1
 /..\..\..\..\src\QIPcomponents\ddr_iobuf.vhd=-1
 /..\..\..\..\src\QIPcomponents\serial_pll.qip=-1
 /..\..\..\..\src\QIPcomponents\serial_pll.vhd=-1
+/..\..\..\..\src\QIPcomponents\txFifo_hs.qip=-1
+/..\..\..\..\src\QIPcomponents\txFifo_hs.vhd=-1
+/..\..\..\..\src\data_readout_control.vhd=-1
 
 [Files.Data]
 .\..\..\..\src\QIPcomponents\txFifo.vhd=VHDL Source Code
@@ -187,4 +190,7 @@ Synchronize=1
 .\..\..\..\src\QIPcomponents\ddr_iobuf.vhd=VHDL Source Code
 .\..\..\..\src\QIPcomponents\serial_pll.qip=External File
 .\..\..\..\src\QIPcomponents\serial_pll.vhd=VHDL Source Code
+.\..\..\..\src\QIPcomponents\txFifo_hs.qip=External File
+.\..\..\..\src\QIPcomponents\txFifo_hs.vhd=VHDL Source Code
+.\..\..\..\src\data_readout_control.vhd=VHDL Source Code
 

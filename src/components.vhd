@@ -91,11 +91,12 @@ component dataBuffer is
 		Token :  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0);	
 		blockSelect : out STD_LOGIC_VECTOR(2 DOWNTO 0);	
 		readClock: out std_logic;		
-		clock					:	in		std_logic;   	--40MHz clock from jitter cleaner
+		clock					:	in		clock_type;   	--40MHz clock from jitter cleaner
 		reset					:	in		std_logic;	--transfer done
 		start					:  in		std_logic;
-		ramReadAddress		:	in		natural; 
-		ramDataOut			:	out	std_logic_vector(15 downto 0);	--13 bit RAM-stored data	
+		fifoRead         		:	in	    std_logic; 
+		fifoDataOut			:	out	std_logic_vector(15 downto 0);
+        fifoOcc             : out std_logic_vector(12 downto 0);
 		done					:	out	std_logic);	-- the psec data has been read out and stored in ram	
 		
 end component;
@@ -209,7 +210,7 @@ component PSEC4_driver is
 	port(	
 	
 		clock					: in	clock_type;
-		reset					: in  std_logic;
+		reset					: in  reset_type;
 		DLL_resetRequest	: in  std_logic;
 		DLL_updateEnable	: in  std_logic;
 		trig					: in  std_logic;
@@ -225,9 +226,10 @@ component PSEC4_driver is
 		DAC_value			: out natural range 0 to 4095;
 		Wlkn_fdbk_current : out natural;
 		DLL_monitor			: out std_logic;
-		ramReadAddress		: in natural;
-		ramDataOut			: out std_logic_vector(15 downto 0);
-		ramBufferFull		: out std_logic;
+		fifoRead         		:	in	    std_logic; 
+		fifoDataOut			:	out	std_logic_vector(15 downto 0);
+        fifoOcc             : out std_logic_vector(12 downto 0);
+        readoutDone         : out std_logic;
 		FLL_lock				: out std_logic
 );
 	
@@ -343,6 +345,7 @@ component serialTx_highSpeed is
     input       : in  hs_input_array;
     input_ready : out std_logic_vector(1 downto 0);
     input_valid : in  std_logic_vector(1 downto 0);
+    input_kout  : in  std_logic_vector(1 downto 0);
     outputMode  : in  std_logic_vector(1 downto 0);
     output      : out std_logic_vector(1 downto 0)); 
 end component serialTx_highSpeed;
@@ -355,6 +358,36 @@ component serial_pll is
     c1     : OUT STD_LOGIC;
     locked : OUT STD_LOGIC);
 end component serial_pll;
+
+
+component txFifo_hs is
+  port (
+    aclr    : IN  STD_LOGIC := '0';
+    data    : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
+    rdclk   : IN  STD_LOGIC;
+    rdreq   : IN  STD_LOGIC;
+    wrclk   : IN  STD_LOGIC;
+    wrreq   : IN  STD_LOGIC;
+    q       : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+    rdempty : OUT STD_LOGIC;
+    rdusedw : OUT STD_LOGIC_VECTOR (12 DOWNTO 0);
+    wrfull  : OUT STD_LOGIC;
+    wrusedw : OUT STD_LOGIC_VECTOR (12 DOWNTO 0)); 
+end component txFifo_hs;
+
+
+component data_readout_control is
+  port (
+    clock            : in  clock_type;
+    reset            : in  reset_type;
+    fifoRead         : out std_logic_vector(N-1 downto 0);
+    fifoDataOut      : in  array16;
+    fifoOcc          : in  array13;
+    dataToSend       : out hs_input_array;
+    dataToSend_valid : out std_logic_vector(1 downto 0);
+    dataToSend_kout  : out std_logic_vector(1 downto 0);
+    dataToSend_ready : in  std_logic_vector(1 downto 0));
+end component data_readout_control;
 
 end components;
 

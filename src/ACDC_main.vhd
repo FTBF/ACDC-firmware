@@ -15,6 +15,7 @@
 library IEEE; 
 use ieee.std_logic_1164.all;
 USE ieee.numeric_std.ALL; 
+use ieee.std_logic_misc.all;
 use work.defs.all;
 use work.components.all;
 use work.LibDG.all;
@@ -83,7 +84,6 @@ architecture vhdl of	ACDC_main is
 	signal  cmd				   : cmd_type;
 	signal 	calSwitchEnable    : std_logic_vector(14 downto 0);	
 	signal	psecDataStored     : std_logic_vector(7 downto 0);
-	signal	transfer_enable    : std_logic;
 	signal	trig_frameType     : natural;
 	signal	systemTime_reset   : std_logic;
 	signal	acc_trig		   : std_logic;
@@ -102,10 +102,19 @@ architecture vhdl of	ACDC_main is
 	signal 	signal_trig_detect : std_logic;
 	signal 	led_trig		   : std_logic_vector(8 downto 0);
 	signal 	led_mono		   : std_logic_vector(8 downto 0);
+    signal  reset_acc_z        : std_logic;
 	
 	signal  rxparams           : RX_Param_jcpll_type;
     signal  rxparams_syncAcc   : RX_Param_jcpll_type;
     signal  rxparams_acc       : RX_Param_acc_type;
+
+    signal fifoRead            : std_logic_vector(N-1 downto 0);
+    signal fifoDataOut         : array16;
+    signal fifoOcc             : array13;
+    signal dataToSend          : hs_input_array;
+    signal dataToSend_valid    : std_logic_vector(1 downto 0);
+    signal dataToSend_kout     : std_logic_vector(1 downto 0);
+    signal dataToSend_ready    : std_logic_vector(1 downto 0);
 
     signal  serialTx_data      : std_logic_vector(1 downto 0);
 		
@@ -183,12 +192,19 @@ begin
   end if;
 end process;
 
+PreRESET_SYNC_25MHz : process(clock.acc40)
+begin
+  if rising_edge(clock.acc40) then
+    reset_acc_z <= reset.acc;
+  end if;
+end process;
+
 RESET_SYNC_25MHz : process(clock.serial25)
   variable reset_sync_1 : std_logic;
   variable reset_sync_2 : std_logic;
 begin
   if rising_edge(clock.serial25) then
-    reset_sync_1 := reset.acc;
+    reset_sync_1 := reset_acc_z;
     reset_sync_2 := reset_sync_1;
     reset.serial <= reset_sync_2;
   end if;
@@ -279,13 +295,26 @@ serialTx_highSpeed_inst: serialTx_highSpeed
   port map (
     clk    => clock,
     reset  => reset,
-    input       => (X"AA", X"AA"),
-    input_ready => open,
-    input_valid => "11",
+    input       => dataToSend,
+    input_ready => dataToSend_ready,
+    input_valid => dataToSend_valid,
+    input_kout  => dataToSend_kout,
     outputMode => rxparams_acc.outputMode,
     output => serialTx_data);
 	
-	
+data_readout_control_inst: data_readout_control
+  port map (
+    clock            => clock,
+    reset            => reset,
+    fifoRead         => fifoRead,
+    fifoDataOut      => fifoDataOut,
+    fifoOcc          => fifoOcc,
+    dataToSend       => dataToSend,
+    dataToSend_valid => dataToSend_valid,
+    dataToSend_kout  => dataToSend_kout,
+    dataToSend_ready => dataToSend_ready);
+
+
 ------------------------------------
 --	RX COMMAND
 ------------------------------------
@@ -380,7 +409,7 @@ trigger_map: trigger port map(
 			digitize_request   => digitize_request,
 			transfer_request   => transfer_request,
 			digitize_done	   => digitize_done,
-			transfer_enable	   => transfer_enable,
+			transfer_enable	   => open,
 			transfer_done	   => serialTx.trigTransferDone,
 			eventCount		   => eventCount,
 			ppsCount		   => ppsCount,
@@ -436,7 +465,7 @@ PSEC4_trigSign <= rxparams.selfTrig.sign;
 PSEC4_drv: for i in N-1 downto 0 generate
 	PSEC4_drv_map : PSEC4_driver port map(
 		clock			  => clock,
-		reset			  => reset.global,
+		reset			  => reset,
 		DLL_resetRequest  => rxparams.DLL_resetRequest,
 		DLL_updateEnable  => rxparams.testMode.DLL_updateEnable(i),
 		trig			  => trig_out,
@@ -444,7 +473,7 @@ PSEC4_drv: for i in N-1 downto 0 generate
 		selftrig_clear	  => trig_clear,
 		digitize_request  => digitize_request,
 		rampDone		  => rampDone(i),
-		adcReset		  => reset.global or serialTx.trigTransferDone,
+		adcReset		  => reset.global,
 		PSEC4_in		  => PSEC4_in(i),
 		Wlkn_fdbk_target  => rxparams.RO_target(i),
 		PSEC4_out		  => PSEC4_out(i),
@@ -452,22 +481,28 @@ PSEC4_drv: for i in N-1 downto 0 generate
 		DAC_value		  => pro_vdd(i),
 		Wlkn_fdbk_current => Wlkn_fdbk_current(i),
 		DLL_monitor		  => open,			-- not used
-		ramReadAddress	  => readAddress,
-		ramDataOut		  => readData(i),
-		ramBufferFull	  => psecDataStored(i),
+        fifoRead          => fifoRead(i),
+        fifoDataOut		  => fifoDataOut(i),
+        fifoOcc           => fifoOcc(i),
+        readoutDone       => psecDataStored(i),
 		FLL_lock		  => FLL_lock(i));
 end generate;
 
 
 DIGITIZED_PSEC_DATA_CHECK: process(clock.sys)		-- essentially an AND gate 
-variable done: std_logic;
+  variable psecDataStored_z   : std_logic_vector(N-1 downto 0) := (others => '0');
 begin
+    digitize_done <= and_reduce(psecDataStored_z);	-- all PSEC4 chip have stored their data in firmware RAM buffer
 	if (rising_edge(clock.sys)) then
-		done := '1';
+      if and_reduce(psecDataStored_z) then
+        psecDataStored_z := (others => '0');
+      else
 		for i in 0 to N-1 loop
-			if (psecDataStored(i) = '0') then done := '0'; end if;
-		end loop;
-		digitize_done <= done;	-- all PSEC4 chip have stored their data in firmware RAM buffer
+          if (psecDataStored(i) = '1') then
+            psecDataStored_z(i) := '1';
+          end if;
+		end loop;          
+      end if;
 	end if;
 end process;
 
@@ -493,7 +528,6 @@ end process;
 -- Additional trig threshold DACs
 -- PSEC 0,1,2 chain 3, device 0 (U18)
 -- PSEC 2,3,4 chain 3, device 1 (U19)
--- INDEPENDENT Trig threshold settings are not yet implemented!!!!
 --
 
 AssignDacData: process(clock.sys)

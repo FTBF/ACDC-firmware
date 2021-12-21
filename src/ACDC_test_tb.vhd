@@ -270,18 +270,19 @@ tx_comms_map : synchronousTx_8b10b_ACC port map (
 --	sendword(X"FFAA4045", cmd_in, cmd_ready);
 --	sendword(X"FFAB4046", cmd_in, cmd_ready);
 	
-	wait for 10 us;
-	
-	sendword(X"FFF60001", cmd_in, cmd_ready);
-	
-	LVDS_in(1) <= '1';
-	wait for 200 ns;
-	LVDS_in(1) <= '0';
-	
-	wait for 10 us;
-	
-	sendword(X"FFF60003", cmd_in, cmd_ready);
-	
+--	wait for 10 us;
+--	
+--	sendword(X"FFF60001", cmd_in, cmd_ready);
+--	
+--	LVDS_in(1) <= '1';
+--	wait for 200 ns;
+--	LVDS_in(1) <= '0';
+--	
+--	wait for 10 us;
+--	
+--	sendword(X"FFF60003", cmd_in, cmd_ready);
+
+	sendword(X"FFD00000", cmd_in, cmd_ready);
 	
 	--sendword(X"FFF10000", cmd_in, cmd_ready);
 --	sendword(X"FFF30060", cmd_in, cmd_ready); 

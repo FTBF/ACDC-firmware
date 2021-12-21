@@ -13,6 +13,7 @@ entity serialTx_highSpeed is
     input       : in hs_input_array;
     input_ready : out std_logic_vector(1 downto 0);
     input_valid : in std_logic_vector(1 downto 0);
+    input_kout  : in std_logic_vector(1 downto 0);
     
     outputMode  : in  std_logic_vector(1 downto 0);
     output      : out std_logic_vector(1 downto 0)
@@ -60,6 +61,7 @@ begin  -- architecture vhdl
 
   channel_serialization : for iLink in 0 to 1 generate
     signal output_z : std_logic_vector(7 downto 0);
+    signal outputMode_z : std_logic_vector(1 downto 0);
     signal dout_10b : std_logic_vector(9 downto 0);
     signal dout_10b_sync : std_logic_vector(9 downto 0);
     signal enc_kin : std_logic;
@@ -68,7 +70,8 @@ begin  -- architecture vhdl
     output_mux : process(clk.serial25)
     begin
       if rising_edge(clk.serial25) then
-        case outputMode is
+        outputMode_z <= outputMode;
+        case outputMode_z is
           when "01"   =>
             output_z <= prbs_pattern(7 downto 0);
             enc_kin <= '0';
@@ -76,7 +79,7 @@ begin  -- architecture vhdl
           when "11"   =>
             if input_valid(iLink) = '1' then
               output_z <= input(iLink);
-              enc_kin <= '0';
+              enc_kin <= input_kout(iLink);
             else
               output_z <= idleStream;
               enc_kin <= '1';
@@ -130,8 +133,8 @@ begin  -- architecture vhdl
   -- second input inverted due to p/n swap on LVDS pair on ACDC PCB
   ddr_iobuf_inst: ddr_iobuf
     port map (
-      datain_h => serial_out(0)(1) & not serial_out(1)(1),
-      datain_l => serial_out(0)(0) & not serial_out(1)(0),
+      datain_h => serial_out(1)(1) & not serial_out(0)(1),
+      datain_l => serial_out(1)(0) & not serial_out(0)(0),
       outclock => clk.serial125,
       dataout  => output);
 

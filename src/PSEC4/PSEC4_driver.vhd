@@ -26,7 +26,7 @@ entity PSEC4_driver is
 	port(	
 	
 		clock					: in	clock_type;
-		reset					: in  std_logic;
+		reset					: in  reset_type;
 		DLL_resetRequest	: in  std_logic;
 		DLL_updateEnable	: in  std_logic;
 		trig					: in  std_logic;
@@ -42,30 +42,24 @@ entity PSEC4_driver is
 		DAC_value			: out natural range 0 to 4095;
 		Wlkn_fdbk_current : out natural;
 		DLL_monitor			: out std_logic;
-		ramReadAddress		: in natural;
-		ramDataOut			: out std_logic_vector(15 downto 0);
-		ramBufferFull		: out std_logic;
+		fifoRead         		:	in	    std_logic; 
+		fifoDataOut			:	out	std_logic_vector(15 downto 0);
+        fifoOcc             : out std_logic_vector(12 downto 0);
+        readoutDone         : out std_logic;
 		FLL_lock				: out	std_logic
 		);
 	
 end PSEC4_driver;
 	
 	
-	
 architecture vhdl of	PSEC4_driver is
-
 	
-	
-signal VCDL_MONITOR_BIT_z: std_logic;
-signal WILK_MONITOR_BIT_z: std_logic;
-signal DLL_reset: std_logic;
-
-
-	
+  signal VCDL_MONITOR_BIT_z: std_logic;
+  signal WILK_MONITOR_BIT_z: std_logic;
+  signal DLL_reset: std_logic;
+  signal psecReadoutDone : std_logic;
    
 begin
-
-
 
 ------------------------------------
 --	DLL RESET
@@ -75,26 +69,19 @@ variable t: natural := 0;		-- elaspsed time counter
 variable r: std_logic;
 begin
 	if (rising_edge(clock.sys)) then 						
-		if (reset = '1' or DLL_resetRequest = '1') then t := 0; end if;		-- restart counter if new reset request	
+		if (reset.global = '1' or DLL_resetRequest = '1') then t := 0; end if;		-- restart counter if new reset request	
 		if (t >= 40000000) then r := '0'; else r := '1'; t := t + 1; end if;
 		DLL_reset <= r; 			
 	end if;
 end process;
 			
 
-			
-	
-
-
 ------------------------------------
 --	TRIGGER 
 ------------------------------------
 
 PSEC4_out.extTrig <= trig;		
-PSEC4_out.trigClear <= selfTrig_clear or reset;
-
-
-
+PSEC4_out.trigClear <= selfTrig_clear or reset.global;
 
 
 ------------------------------------
@@ -103,7 +90,7 @@ PSEC4_out.trigClear <= selfTrig_clear or reset;
 
 ADC_map: ADC_Ctrl port map(
 		clock			=> clock.sys,			--40MHz	
-		reset			=> adcReset,
+		reset			=> adcReset or psecReadoutDone,
 		start			=> digitize_request,
 		RO_EN 		=> PSEC4_out.ringOsc_enable,
 		adcClear		=> PSEC4_out.adcClear,
@@ -112,10 +99,6 @@ ADC_map: ADC_Ctrl port map(
 		rampDone		=> rampDone);
 
 		
-			
-			
-
-
 			
 ------------------------------------
 --	DATA BUFFER
@@ -127,15 +110,15 @@ dataBuffer_map : dataBuffer port map(
 	Token 		=> PSEC4_out.tokIn,
 	blockSelect => PSEC4_out.TokDecode,
 	readClock	=> PSEC4_out.readClock,
-	clock			=> clock.sys,
-	reset			=> adcReset,
+	clock			=> clock,
+	reset			=> reset.serial,
 	start			=> rampDone,
-	ramReadAddress	=> ramReadAddress,
-	ramDataOut	=> ramDataOut,
-	done			=> ramBufferFull);
+    fifoRead        => fifoRead,
+    fifoDataOut		=> fifoDataOut,
+    fifoOcc         => fifoOcc,
+	done			=> psecReadoutDone);
 
-	
-
+readoutDone <= psecReadoutDone;
 
 
 ------------------------------------
@@ -157,11 +140,6 @@ begin
 	DLL_monitor	<=	x(22);
 end process;
 	
-
-
-	
-			
-			
 			
 ------------------------------------------
 --	WILKINSON FEEDBACK LOOP & VCDL MONITOR
@@ -189,7 +167,7 @@ variable state: STATE_TYPE := INIT;
 begin
 	if (rising_edge(clock.sys)) then
 						
-		if (reset = '1') then state := INIT; end if;		
+		if (reset.global = '1') then state := INIT; end if;		
 			
 			
 		case state is
@@ -269,15 +247,9 @@ begin
 	end if;
 end process;
 
-		  
-
 
 edge_detect_wilk_monitor: risingEdgeDetect port map(clock.sys, PSEC4_in.ringOsc_mon, WILK_MONITOR_BIT_z);
 edge_detect_vcdl_monitor: risingEdgeDetect port map(clock.sys, PSEC4_in.DLL_clock, VCDL_MONITOR_BIT_z);
-
-		  
-
-
 
  
 end vhdl;
