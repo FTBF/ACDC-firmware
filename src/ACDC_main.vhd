@@ -38,8 +38,7 @@ entity ACDC_main is
         enableV1p2a             : out    std_logic;
 		calEnable				: inout  std_logic_vector(14 downto 0);
 		DAC						: out    DAC_array_type;
-		SMA_J5					: inout  std_logic;
-		SMA_J16					: in     std_logic;
+		SMA_J3					: in     std_logic;
 		ledOut     				: out    std_logic_vector(8 downto 0);
         debug2                  : out    std_logic;
         debug3                  : out    std_logic
@@ -117,13 +116,20 @@ architecture vhdl of	ACDC_main is
     signal dataToSend_ready    : std_logic_vector(1 downto 0);
 
     signal  serialTx_data      : std_logic_vector(1 downto 0);
+
+    signal wrTime_fast         : std_logic_vector(31 downto 0);
+    signal wrTime_pps          : std_logic_vector(31 downto 0);
+    signal pps                 : std_logic;
+    signal pps_z               : std_logic;
+
+    signal trig_out_debug      : std_logic;
 		
 begin
 
 
 -- SMA connectors
-sma_trigIn <= SMA_J16;
-SMA_J5 <= txBusy;  
+sma_trigIn <= '0';
+pps <= SMA_J3;
 
 
 
@@ -221,6 +227,17 @@ begin
   end if;
 end process;
 
+RESET_SYNC_WR100MHz : process(clock.wr100)
+  variable reset_sync_1 : std_logic;
+  variable reset_sync_2 : std_logic;
+begin
+  if falling_edge(clock.wr100) then
+    reset_sync_1 := reset.acc;
+    reset_sync_2 := reset_sync_1;
+    reset.wr <= reset_sync_2;
+  end if;
+end process;
+
 -- fix the 1.2V analog linear regular on 
 enableV1p2a <= '1';
 
@@ -249,8 +266,8 @@ LVDS_out(3) <=	serialTx_data(1);	-- data links
 serialRx.serial 	<= LVDS_in(0);	--  serial comms rx
 acc_trig		 		<= LVDS_in(1);
 
-debug2 <= jcpll_spi_miso;
-debug3 <= jcpll_ctrl.spi_clock;
+debug2 <= trig_out;
+debug3 <= trig_out_debug;
    
 ------------------------------------
 --	SERIAL TX
@@ -379,8 +396,7 @@ dataHandler_map: dataHandler port map (
 		ppsCount  		   => ppsCount,
 		beamGateCount      => beamGateCount,
         eventCount		   => eventCount,
-		readRequest		   => transfer_request,
-        trigTransferDone   => serialTx.trigTransferDone,
+		readRequest		   => '0',
         ramAddress         => readAddress,
         ramData            => readData,
 		selfTrig_rateCount => selfTrig_rateCount,
@@ -407,10 +423,7 @@ trigger_map: trigger port map(
 			sma_trig		   => sma_trigIn xor rxparams.trigSetup.sma_invert,
 			self_trig		   => self_trig,
 			digitize_request   => digitize_request,
-			transfer_request   => transfer_request,
 			digitize_done	   => digitize_done,
-			transfer_enable	   => open,
-			transfer_done	   => serialTx.trigTransferDone,
 			eventCount		   => eventCount,
 			ppsCount		   => ppsCount,
 			beamGateCount	   => beamGateCount,
@@ -427,7 +440,8 @@ trigger_map: trigger port map(
 			trig_event		   => trig_event,
 			trig_clear		   => trig_clear,
 			trig_out		   => trig_out,
-			trig_rate_count	   => trig_rateCount);
+			trig_rate_count	   => trig_rateCount,
+            trig_out_debug     => trig_out_debug);
 			
 
 		
@@ -582,10 +596,6 @@ dacSerial_gen: for i in 0 to 3 generate		-- 3x dac daisy chain
         dac   			=> dac(i));				-- output pins to dac chip
 end generate;
 
-
-
-			
-
 		
 ------------------------------------
 --	SYSTEM TIME
@@ -600,12 +610,30 @@ SYS_TIME_GEN: fastCounter64 port map (
 		
 -- synchronize reset to x8 clock
 SYS_TIME_RESET: pulseSync port map (clock.sys, clock.x8, reset.global or rxparams.trigSetup.eventAndTime_reset, systemTime_reset);
-
    
- 
 
- 
- 
+-- white rabbit synchronized counters for absolute time stamp
+-- wrTime_fast : 100 MHz counter reset to 0 by PPS
+-- wrTime_pps : 1 Hz counter triggered by PPS signal
+wrTiming : process ( clock.wr100 )
+begin
+  -- use falling edge of 100 MHz white rabbit because 1PPS is synchronous to the
+  -- rising edge 
+  if falling_edge(clock.wr100) then
+    pps_z <= pps;
+    if reset.wr = '1' then
+      wrTime_fast <= (others => '0');
+      wrTime_pps <= (others => '0');
+    else
+      if pps = '1' and pps_z = '0' then
+        wrTime_fast <= (others => '0');
+        wrTime_pps <= std_logic_vector(unsigned(wrTime_pps) + 1);
+      else
+        wrTime_fast <= std_logic_vector(unsigned(wrTime_fast) + 1);
+      end if;
+    end if;
+  end if;
+end process;
 
  
 end vhdl;

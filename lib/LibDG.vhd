@@ -253,6 +253,14 @@ component prbsGenerator is
 end component prbsGenerator;
 
 
+component manchester_decoder is
+  port (
+    clk    : in  std_logic;
+    resetn : in  std_logic;
+    i      : in  std_logic;
+    q      : out std_logic);
+end component manchester_decoder;
+
 
 End LibDG;
 

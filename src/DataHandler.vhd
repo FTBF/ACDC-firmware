@@ -41,7 +41,6 @@ entity dataHandler is
     eventCount		   :	in		std_logic_vector(31 downto 0);
     IDrequest		   :	in		std_logic;
     readRequest		   :	in		std_logic;
-    trigTransferDone   :	out	    std_logic;
     ramAddress         :    out     natural;
     ramData            :    in      wordArray;
     txData	           : 	out	    std_logic_vector(7 downto 0);
@@ -118,7 +117,6 @@ begin
 			
 			state := WAIT_FOR_REQUEST;
 			txReq <= '0';
-            trigTransferDone <= '0';
 			serialNumber <= x"00000000";
 			IDframeCount <= x"00000000";
 			txBusy <= '0';
@@ -143,7 +141,6 @@ begin
 				when WAIT_FOR_REQUEST => 
 			             
 					txBusy <= '0';
-					trigTransferDone <= '0';
 					txReq <= '0';
 					ramAddress <= 0;
 					SOF_done := false;
@@ -337,8 +334,6 @@ begin
 							
 								case frame_type is 
 									when frameType_name.id => IDframeCount <= IDframeCount + 1;
-									when frameType_name.pps => trigTransferDone <= '1';
-									when frameType_name.psec => trigTransferDone <= '1';
 									when others => null;
 								end case;
 							

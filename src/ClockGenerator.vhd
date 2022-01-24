@@ -51,7 +51,7 @@ begin
 
 
 clock.usb <= '0'; --clockIn.usb_IFCLK;
-
+clock.wr100 <= clockIn.wr100;
 	
 -- system clocks
 PLL_MAP : pll port map

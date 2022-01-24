@@ -47,6 +47,7 @@ architecture vhdl of ACDC_test_tb is
   constant OSC_PERIOD : time := 40 ns; 
   constant TX_PERIOD : time := 25 ns;
   constant UART_PERIOD : time := 100 ns;
+  constant WR_PERIOD : time := 10 ns;
   constant RESET_LENGTH : time := 1500 ns;
   shared variable ENDSIM : boolean := false;
 
@@ -63,9 +64,8 @@ architecture vhdl of ACDC_test_tb is
   signal enableV1p2a    : std_logic;
   signal calEnable      : std_logic_vector(14 downto 0);
   signal calInputSel    : std_logic;
-  signal DAC            : DAC_array_type;
-  signal SMA_J5         : std_logic;	   
-  signal SMA_J16        : std_logic;
+  signal DAC            : DAC_array_type;   
+  signal SMA_J3        : std_logic;
   signal ledOut         : std_logic_vector(9-1 downto 0);
   signal debug2         : std_logic;
   signal debug3         : std_logic;
@@ -124,9 +124,8 @@ begin  -- architecture vhdl
       PSEC4_trigSign => PSEC4_trigSign,	
 	  enableV1p2a   => enableV1p2a,
       calEnable      => calEnable,	 
-      DAC            => DAC,   
-	  SMA_J5			=> SMA_J5,
-	  SMA_J16			=> SMA_J16,
+      DAC            => DAC,
+	  SMA_J3			=> SMA_J3,
       ledOut         => ledOut,
 	  debug2        =>  debug2,
       debug3         => debug3
@@ -198,14 +197,34 @@ tx_comms_map : synchronousTx_8b10b_ACC port map (
     else 
       wait;
     end if;
-  end process;	
+  end process;
+  
+  WR_CLK_GEN_PROC : process 
+  begin
+    if ENDSIM = false then
+      clockIn.wr100 <= '0';
+      wait for WR_PERIOD / 2;
+      clockIn.wr100<= '1';
+      wait for WR_PERIOD / 2;
+    else 
+      wait;
+    end if;
+  end process;
+  
+  ppsGen : process
+  begin
+	 SMA_J3 <= '0';
+	 wait for 100 us;
+	 SMA_J3 <= '1';
+	 wait for 20 us;
+	 
+  end process;
   
   -- waveform generation
   WaveGen_Proc: process
   begin
     -- insert signal assignments here
-    SMA_J5 <= '0';
-    SMA_J16 <= '0';
+    
 	reset <= '1';
 	cmd_in <= X"00000000";
 	cmd_ready <= '0';

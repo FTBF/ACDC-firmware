@@ -141,11 +141,11 @@ end process;
 
 TRIG_GEN: process(selfTrig.use_coincidence, coincidence_trig, selfTrig_OR_combined)
 begin
-	if (selfTrig.use_coincidence = '1') then
-		trig_out <= coincidence_trig;
-	else
+--	if (selfTrig.use_coincidence = '1') then
+--		trig_out <= coincidence_trig;
+--	else
 		trig_out <= selfTrig_OR_combined;
-	end if;
+--	end if;
 end process;
 
 

@@ -129,6 +129,7 @@ type clockSource_type is record
 	localOsc		:	std_logic;
 	jcpll			:	std_logic;
     accOsc          :   std_logic;
+    wr100           :   std_logic;
 end record;
 
 
@@ -152,6 +153,7 @@ type clock_type is record
     acc320				:	std_logic;
     serial25    : std_logic;
     serial125   : std_logic;
+    wr100       : std_logic;
     usb         :	std_logic;  
     update		:	std_logic;
     altpllLock  :	std_logic;
@@ -312,6 +314,7 @@ type reset_type is record
     acc         :   std_logic;
     serial      :   std_logic;
     serialFast  :   std_logic;
+    wr          :   std_logic;
 	request		:	std_logic;
 end record;
 

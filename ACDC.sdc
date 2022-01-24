@@ -15,6 +15,7 @@
 create_clock 	-period "30.000 ns"  [get_ports clockIn.localOsc]
 create_clock 	-period "40.000 ns"  [get_ports clockIn.accOsc]
 create_clock 	-period "25.000 ns"  [get_ports clockIn.jcpll]
+create_clock 	-period "10.000 ns"  [get_ports clockIn.wr100]
 create_clock 	-period "25000.000 ns"  [get_ports {jcpll_ctrl.spi_clock}]
 				
 create_clock -period 40MHz 	[get_ports PSEC4_out(0).readClock]					

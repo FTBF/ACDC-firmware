@@ -20,11 +20,6 @@ use work.defs.all;
 
 package components is
 
-
-
-
-
-
 		
 -- ADC ctrl	
 component ADC_Ctrl is 
@@ -121,7 +116,6 @@ component dataHandler is
       eventCount		 :	in		std_logic_vector(31 downto 0);
       IDrequest      	 :	in		std_logic;
       readRequest		 :	in		std_logic;
-      trigTransferDone	 :	out	std_logic;
       ramAddress         :  out   natural;
       ramData            :  in    wordArray;
       txData	         : 	out	std_logic_vector(7 downto 0);
@@ -264,10 +258,7 @@ component trigger is
 			sma_trig					: in	std_logic;	-- on-board SMA trig
 			self_trig				: in	std_logic;	
 			digitize_request		: out	std_logic;
-			transfer_request		: out	std_logic;
 			digitize_done			: in	std_logic;
-			transfer_enable		: out std_logic;	
-			transfer_done			: in	std_logic;
 			eventCount				: out	std_logic_vector(31 downto 0);
 			ppsCount					: buffer std_logic_vector(31 downto 0);
 			beamGateCount			: buffer std_logic_vector(31 downto 0);
@@ -284,7 +275,8 @@ component trigger is
 			trig_event				: out std_logic;
 			trig_clear				: buffer std_logic;
 			trig_out					: buffer std_logic;
-			trig_rate_count		: out natural);
+			trig_rate_count		: out natural;
+            trig_out_debug      : out std_logic);
 	end component;
 
 
