@@ -262,6 +262,32 @@ component manchester_decoder is
 end component manchester_decoder;
 
 
+component sync_Bits_Altera is
+  generic (
+    BITS       : positive;
+    INIT       : std_logic_vector;
+    SYNC_DEPTH : natural range 2 to 5);
+  port (
+    Clock  : in  std_logic;
+    Input  : in  std_logic_vector(BITS - 1 downto 0);
+    Output : out std_logic_vector(BITS - 1 downto 0));
+end component sync_Bits_Altera;
+
+
+component skid_buffer is
+  generic (
+    NBITS : natural); 
+  port (
+    clock          : in  std_logic;
+    reset          : in  std_logic;
+    data_in        : in  std_logic_vector(NBITS - 1 downto 0);
+    data_in_ready  : out std_logic;
+    data_in_valid  : in  std_logic;
+    data_out       : out std_logic_vector(NBITS - 1 downto 0);
+    data_out_ready : in  std_logic;
+    data_out_valid : out std_logic); 
+end component skid_buffer;
+
 End LibDG;
 
 

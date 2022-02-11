@@ -18,10 +18,9 @@ use ieee.std_logic_unsigned.all;
 use work.components.pll;
 use work.components.acc_pll;
 use work.components.serial_pll;
+use work.components.pll_wr;
 use work.LibDG.all;
 use work.defs.all;
-
-
 
 entity ClockGenerator is
 	Port(
@@ -51,8 +50,7 @@ begin
 
 
 clock.usb <= '0'; --clockIn.usb_IFCLK;
-clock.wr100 <= clockIn.wr100;
-	
+
 -- system clocks
 PLL_MAP : pll port map
 (
@@ -78,7 +76,16 @@ serial_pll_inst: serial_pll
     c0     => clock.serial125,
     c1     => clock.serial25,
     locked => clock.serialpllLock);
-	
+
+pll_wr_inst: pll_wr
+  port map (
+    areset => '0',
+    inclk0 => clockIn.wr100,
+    c0     => clock.wr100,
+    locked => clock.wrpllLock);
+
+
+
 ---------------------------------------
 -- UPDATE CLOCK GENERATOR
 ---------------------------------------

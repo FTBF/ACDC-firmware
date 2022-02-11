@@ -87,7 +87,7 @@ component dataBuffer is
 		blockSelect : out STD_LOGIC_VECTOR(2 DOWNTO 0);	
 		readClock: out std_logic;		
 		clock					:	in		clock_type;   	--40MHz clock from jitter cleaner
-		reset					:	in		std_logic;	--transfer done
+		reset					:	in		reset_type;	--transfer done
 		start					:  in		std_logic;
 		fifoRead         		:	in	    std_logic; 
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
@@ -110,9 +110,7 @@ component dataHandler is
       pro_vdd			 :	in		natArray16;
       vcdl_count		 :	in		array32;
       timestamp			 :	in		std_logic_vector(63 downto 0);
-      beamgate_timestamp : 	in 	std_logic_vector(63 downto 0);
       ppsCount  		 :	in		std_logic_vector(31 downto 0);
-      beamGateCount      :	in		std_logic_vector(31 downto 0);
       eventCount		 :	in		std_logic_vector(31 downto 0);
       IDrequest      	 :	in		std_logic;
       readRequest		 :	in		std_logic;
@@ -248,35 +246,29 @@ end component;
 component trigger is
 	port(
 			clock						: in	clock_type;
-			reset						: in	std_logic;   
+			reset						: in	reset_type;   
 			systemTime				: in	std_logic_vector(63 downto 0);
-			testMode					: in  testMode_type;
+            wrTime_pps              : in std_logic_vector(31 downto 0);
+            wrTime_fast             : in std_logic_vector(31 downto 0);
 			trigSetup				: in	trig_type;
 			selfTrig					: in 	selfTrig_type;
 			trigInfo					: out	trigInfo_type;
 			acc_trig					: in	std_logic;	-- trig from central card (LVDS)
-			sma_trig					: in	std_logic;	-- on-board SMA trig
 			self_trig				: in	std_logic;	
 			digitize_request		: out	std_logic;
 			digitize_done			: in	std_logic;
 			eventCount				: out	std_logic_vector(31 downto 0);
-			ppsCount					: buffer std_logic_vector(31 downto 0);
-			beamGateCount			: buffer std_logic_vector(31 downto 0);
-			timestamp				: out std_logic_vector(63 downto 0);
-			beamgate_timestamp	: out std_logic_vector(63 downto 0);
-			frameType				: out natural;
-			acc_beamGate			: buffer std_logic;
-			trig_detect 			: out std_logic;
-			trig_valid 				: out std_logic;
-			trig_abort 				: out std_logic;
-			signal_trig_detect	: buffer std_logic;
-			pps_detect 				: out std_logic;
+			sys_timestamp				: out std_logic_vector(63 downto 0);
+            sys_ts_read      : in std_logic;
+            sys_ts_valid     : out std_logic;
+			wr_timestamp				: out std_logic_vector(63 downto 0);
+            wr_ts_read       : in std_logic;
+            wr_ts_valid      : out std_logic;
+            backpressure_in  : in std_logic;
 			busy						: out std_logic;
-			trig_event				: out std_logic;
 			trig_clear				: buffer std_logic;
 			trig_out					: buffer std_logic;
-			trig_rate_count		: out natural;
-            trig_out_debug      : out std_logic);
+			trig_rate_count		: out natural);
 	end component;
 
 
@@ -338,6 +330,7 @@ component serialTx_highSpeed is
     input_ready : out std_logic_vector(1 downto 0);
     input_valid : in  std_logic_vector(1 downto 0);
     input_kout  : in  std_logic_vector(1 downto 0);
+    trigger     : in  std_logic;
     outputMode  : in  std_logic_vector(1 downto 0);
     output      : out std_logic_vector(1 downto 0)); 
 end component serialTx_highSpeed;
@@ -372,14 +365,42 @@ component data_readout_control is
   port (
     clock            : in  clock_type;
     reset            : in  reset_type;
+    backpressure     : in  std_logic;
     fifoRead         : out std_logic_vector(N-1 downto 0);
     fifoDataOut      : in  array16;
     fifoOcc          : in  array13;
+    sys_timestamp	 : in  std_logic_vector(63 downto 0);
+    sys_ts_read      : out std_logic;
+    sys_ts_valid     : in  std_logic;
+    wr_timestamp	 : in  std_logic_vector(63 downto 0);
+    wr_ts_read       : out std_logic;
+    wr_ts_valid      : in  std_logic;
     dataToSend       : out hs_input_array;
     dataToSend_valid : out std_logic_vector(1 downto 0);
     dataToSend_kout  : out std_logic_vector(1 downto 0);
     dataToSend_ready : in  std_logic_vector(1 downto 0));
 end component data_readout_control;
+
+component timeFifo is
+  port (
+    aclr    : IN  STD_LOGIC := '0';
+    data    : IN  STD_LOGIC_VECTOR (63 DOWNTO 0);
+    rdclk   : IN  STD_LOGIC;
+    rdreq   : IN  STD_LOGIC;
+    wrclk   : IN  STD_LOGIC;
+    wrreq   : IN  STD_LOGIC;
+    q       : OUT STD_LOGIC_VECTOR (63 DOWNTO 0);
+    rdempty : OUT STD_LOGIC;
+    wrfull  : OUT STD_LOGIC);
+end component timeFifo;
+
+component pll_wr is
+  port (
+    areset : IN  STD_LOGIC := '0';
+    inclk0 : IN  STD_LOGIC := '0';
+    c0     : OUT STD_LOGIC;
+    locked : OUT STD_LOGIC);
+end component pll_wr;
 
 end components;
 

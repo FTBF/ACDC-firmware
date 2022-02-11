@@ -75,10 +75,8 @@ variable init: std_logic:='1';
 
 begin
 	if (rising_edge(clock)) then
-		
-		
-		
-		if (init = '1') then
+
+      if (init = '1') then
 			
 			-- do once only at power-up
 			
@@ -87,13 +85,9 @@ begin
 		
 		end if;
 		
-		
-		
 		if (reset = '1' or din_valid = '0') then  
-
 		
 			if (reset = '1') then
-				
 				
 				-- POWER-ON DEFAULT VALUES
 				--------------------------
@@ -117,13 +111,12 @@ begin
 				-- trig
 				params_z.trigSetup.mode 	<= 0;
 				params_z.trigSetup.sma_invert <= '0';
+                params_z.trigSetup.timeout <= 0;
 				params_z.selfTrig.coincidence_min <= 1;
 			
 				---------------------------
 			
-			
 			end if;
-			
 
 			-- Clear single-pulse signals
 			
@@ -136,11 +129,8 @@ begin
 			params_z.trigSetup.transferDisableReq <= '0';
 			params_z.trigSetup.resetReq <= '0';
 			
-			--
-	 
-	 
+
       else     -- new instruction received
-         		
 			
 			--parse 32 bit instruction word:
 			--
@@ -150,13 +140,11 @@ begin
 
 			-- when psecMask not used:
 			cmdOption			:= din(19 downto 16);	
-         opt := to_integer(unsigned(cmdOption));
+            opt := to_integer(unsigned(cmdOption));
 			cmdOption2			:= din(15 downto 12);	
 			
 			-- when psecMask used: ("A" command only)
 			psecSel				:= to_integer(unsigned(din(14 downto 12)));
-
-			
 			
 			
          case cmdType is  -- command type                
@@ -201,8 +189,6 @@ begin
 						
 						case cmdOption is
 							
-							
-							
 							when x"0" => 	-- mode 
 								
 								params_z.trigSetup.mode <= to_integer(unsigned(din(3 downto 0)));
@@ -228,12 +214,9 @@ begin
 								
 								
 
-							when x"2" => 	-- sma config
+							when x"2" => 	-- timeout
 							
-								case cmdOption2 is
-									when x"0" => params_z.trigSetup.sma_invert <= din(0);			-- 0=normal, 1=invert 
-									when others => null;
-								end case;
+                                params_z.trigSetup.timeout <= to_integer(unsigned(din(6 downto 0)));
 								
 								
 								
@@ -260,13 +243,8 @@ begin
 								
 							when others => null;
 						
-				
-		
 		
 						end case;
-						
-						
-						
 						
 						
 					when x"C" =>	-- calibration		
@@ -275,8 +253,6 @@ begin
 							when x"0" => params_acc.calEnable(14 downto 0) <= din(14 downto 0);
 							when others => null;
 						end case;
-
-						
 						
 
 						
@@ -288,15 +264,11 @@ begin
 						end case;
 
 						
-						
-						
 					
 					when x"E" =>	-- led control
-					
 
 						null;
 
-					
 					
 					
 					when x"F" =>	-- system command
@@ -327,15 +299,11 @@ begin
 						
 						end case;		
 							
-						
-						
 												
 						
 					when others =>
 						
 						null;
-
-		
 		
 				end case;
 				

@@ -9,6 +9,6 @@ mode=none
 order=1
 macro=
 [Expand]
-acdc_sim=1
+acdc_sim=0
 [Settings]
 Active=acdc_sim

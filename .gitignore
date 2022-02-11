@@ -2,6 +2,7 @@
 .*.swp
 .*.swo
 db
+board
 incremental_db
 simulation
 greybox_tmp

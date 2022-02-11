@@ -159,6 +159,7 @@ type clock_type is record
     altpllLock  :	std_logic;
     accpllLock  :	std_logic;
     serialpllLock : std_logic;
+    wrpllLock   : std_logic;
 end record;
 
 
@@ -350,7 +351,8 @@ type trig_type is record
 	transferDisableReq:	std_logic;
 	resetReq:	std_logic;					-- clear system time counter and event counter
 	eventAndTime_reset:	std_logic;					-- clear system time counter and event counter
-	sma_invert: std_logic;	
+	sma_invert: std_logic;
+    timeout : natural range 0 to 127;
 end record;
 
 

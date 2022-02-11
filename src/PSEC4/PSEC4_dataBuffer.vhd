@@ -28,7 +28,7 @@ entity dataBuffer is
 		blockSelect : out STD_LOGIC_VECTOR(2 DOWNTO 0);	
 		readClock: out std_logic;	
 		clock					:	in		clock_type;   	--40MHz clock from jitter cleaner
-		reset					:	in		std_logic;	
+		reset					:	in		reset_type;	
 		start					:  in		std_logic;
 		fifoRead         		:	in	    std_logic; 
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
@@ -51,7 +51,7 @@ writeData <= "000" & PSEC4_in.overflow & PSEC4_in.data;
 
 txFifo: txFifo_hs
   port map (
-    aclr    => reset,
+    aclr    => reset.serial,
     data    => writeData,
     rdclk   => clock.serial25,
     rdreq   => fifoRead,
@@ -90,7 +90,7 @@ begin
 	
 	if (rising_edge(clock.sys)) then
 			
-		if (reset = '1')  then	state := IDLE; end if;
+		if (reset.global = '1')  then	state := IDLE; end if;
 
 		
 		case state is

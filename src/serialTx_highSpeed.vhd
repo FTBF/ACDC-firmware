@@ -14,6 +14,8 @@ entity serialTx_highSpeed is
     input_ready : out std_logic_vector(1 downto 0);
     input_valid : in std_logic_vector(1 downto 0);
     input_kout  : in std_logic_vector(1 downto 0);
+
+    trigger     : in std_logic;
     
     outputMode  : in  std_logic_vector(1 downto 0);
     output      : out std_logic_vector(1 downto 0)
@@ -27,7 +29,7 @@ architecture vhdl of serialTx_highSpeed is
   signal prbs_pattern : std_logic_vector(15 downto 0);
   signal serial_out : a2_2bit;
   signal idleStream : std_logic_vector(7 downto 0);
-  
+
 begin  -- architecture vhdl
   
   prbsGen: prbsGenerator
@@ -66,7 +68,17 @@ begin  -- architecture vhdl
     signal dout_10b_sync : std_logic_vector(9 downto 0);
     signal enc_kin : std_logic;
     signal serial_cnt : unsigned(2 downto 0);
+    signal trigger_z : std_logic;
+  
   begin
+
+    trig_sync : pulseSync
+      port map (
+        inClock    => clk.serial25,
+        outClock   => clk.serial25,
+        din_valid  => trigger,
+        dout_valid => trigger_z);
+    
     output_mux : process(clk.serial25)
     begin
       if rising_edge(clk.serial25) then
@@ -75,23 +87,25 @@ begin  -- architecture vhdl
           when "01"   =>
             output_z <= prbs_pattern(7 downto 0);
             enc_kin <= '0';
-            input_ready(iLink) <= '0';
           when "11"   =>
-            if input_valid(iLink) = '1' then
+            if trigger_Z = '1' then 
+              output_z <= X"FB";
+              enc_kin <= '1';
+            elsif input_valid(iLink) = '1' and input_ready(iLink) = '1' then
               output_z <= input(iLink);
               enc_kin <= input_kout(iLink);
             else
               output_z <= idleStream;
-              enc_kin <= '1';
+              enc_kin <= '1';              
             end if;
-            input_ready(iLink) <= '1';
           when others =>
             output_z <= idleStream;
             enc_kin <= '1';
-            input_ready(iLink) <= '0';
         end case;
       end if;
     end process;
+
+    input_ready(iLink) <= '1' when trigger_z = '0' and outputMode_z = "11" else '0';
 
     encoder_8b10b_inst: encoder_8b10b
       port map (

@@ -35,9 +35,7 @@ entity dataHandler is
     pro_vdd			   :	in		natArray16;
     vcdl_count		   :	in		array32;
     timestamp		   :	in		std_logic_vector(63 downto 0);
-    beamgate_timestamp :	in		std_logic_vector(63 downto 0);
     ppsCount    	   :	in		std_logic_vector(31 downto 0);
-    beamGateCount      :	in		std_logic_vector(31 downto 0);
     eventCount		   :	in		std_logic_vector(31 downto 0);
     IDrequest		   :	in		std_logic;
     readRequest		   :	in		std_logic;
@@ -383,8 +381,8 @@ IDframe_data(9) <= info(0,1);	-- wlkn feedback current (channel 0)
 IDframe_data(10) <= info(0,2);	-- wlkn feedback target (channel 0)	
 IDframe_data(11) <= std_logic_vector(ppsCount(31 downto 16));
 IDframe_data(12) <= std_logic_vector(ppsCount(15 downto 0));
-IDframe_data(13) <= std_logic_vector(beamGateCount(31 downto 16));
-IDframe_data(14) <= std_logic_vector(beamGateCount(15 downto 0));
+IDframe_data(13) <= (others => '0');
+IDframe_data(14) <= (others => '0');
 IDframe_data(15) <= std_logic_vector(eventCount(31 downto 16));
 IDframe_data(16) <= std_logic_vector(eventCount(15 downto 0));
 IDframe_data(17) <= std_logic_vector(IDframeCount(31 downto 16));
@@ -433,7 +431,7 @@ begin
 			when 1 => info(i,9) <= timestamp(31 downto 16);
 			when 2 => info(i,9) <= timestamp(47 downto 32);
 			when 3 => info(i,9) <= timestamp(63 downto 48);
-			when 4 => info(i,9) <= std_logic_vector(beamgateCount(15 downto 0));
+			when 4 => info(i,9) <= (others => '0');
 			when others => null;
 		end case;
 		
@@ -442,7 +440,7 @@ begin
 			when 1 => info(i,10) <= std_logic_vector(serialNumber(31 downto 16));
 			when 2 => info(i,10) <= std_logic_vector(eventCount(15 downto 0));
 			when 3 => info(i,10) <= std_logic_vector(eventCount(31 downto 16));
-			when 4 => info(i,10) <= std_logic_vector(beamgateCount(31 downto 16));
+			when 4 => info(i,10) <= (others => '0');
 			when others => null;
 		end case;
 		

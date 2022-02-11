@@ -64,12 +64,6 @@ architecture vhdl of	ACDC_main is
 	signal	selfTrig_rateCount : selfTrig_rateCount_array;
 	signal	trig_rateCount     : natural;
 	signal	FLL_lock           : std_logic_vector(N-1 downto 0);
-	signal	ppsCount           : std_logic_vector(31 downto 0);
-	signal	beamGateCount      : std_logic_vector(31 downto 0);
-	signal	acc_beamGate       : std_logic;
-	signal	pps_trig           : std_logic;
-	signal	timestamp          : std_logic_vector(63 downto 0);
-	signal	beamgate_timestamp : std_logic_vector(63 downto 0);
 	signal	rampDone           : std_logic_vector(7 downto 0);
 	signal	eventCount         : std_logic_vector(31 downto 0);		-- increments for every trigger event (i.e. only signal triggers, not for pps triggers)
 	signal	readAddress        : natural;
@@ -83,22 +77,13 @@ architecture vhdl of	ACDC_main is
 	signal  cmd				   : cmd_type;
 	signal 	calSwitchEnable    : std_logic_vector(14 downto 0);	
 	signal	psecDataStored     : std_logic_vector(7 downto 0);
-	signal	trig_frameType     : natural;
 	signal	systemTime_reset   : std_logic;
 	signal	acc_trig		   : std_logic;
 	signal	self_trig		   : std_logic;
 	signal	digitize_request   : std_logic;
-	signal	transfer_request   : std_logic;
 	signal	digitize_done	   : std_logic;
-	signal	trig_event		   : std_logic;
 	signal	trig_out		   : std_logic;
-	signal	sma_trigIn		   : std_logic;
-	signal	trig_detect		   : std_logic;
-	signal 	trig_valid 		   : std_logic;
-	signal 	trig_abort 		   : std_logic;
 	signal 	trig_busy 		   : std_logic;
-	signal 	pps_detect 		   : std_logic;
-	signal 	signal_trig_detect : std_logic;
 	signal 	led_trig		   : std_logic_vector(8 downto 0);
 	signal 	led_mono		   : std_logic_vector(8 downto 0);
     signal  reset_acc_z        : std_logic;
@@ -115,20 +100,28 @@ architecture vhdl of	ACDC_main is
     signal dataToSend_kout     : std_logic_vector(1 downto 0);
     signal dataToSend_ready    : std_logic_vector(1 downto 0);
 
+    signal sys_timestamp       : std_logic_vector(63 downto 0);
+    signal sys_ts_read         : std_logic;
+    signal sys_ts_valid        : std_logic;
+    signal wr_timestamp	       : std_logic_vector(63 downto 0);
+    signal wr_ts_read          : std_logic;
+    signal wr_ts_valid         : std_logic;
+
+    signal backpressure_in     : std_logic;
+    signal backpressure_in_man : std_logic;
+    signal backpressure_in_ser : std_logic;
+    
     signal  serialTx_data      : std_logic_vector(1 downto 0);
 
     signal wrTime_fast         : std_logic_vector(31 downto 0);
     signal wrTime_pps          : std_logic_vector(31 downto 0);
     signal pps                 : std_logic;
     signal pps_z               : std_logic;
-
-    signal trig_out_debug      : std_logic;
 		
 begin
 
 
 -- SMA connectors
-sma_trigIn <= '0';
 pps <= SMA_J3;
 
 
@@ -151,13 +144,13 @@ end generate;
 
 led_trig(0) <= not serialRx.symbol_align_error;
 led_trig(1) <= FLL_lock(1);
-led_trig(2) <= signal_trig_detect;
+led_trig(2) <= '0';
 led_trig(3) <= cmd.valid;
 led_trig(4) <= jcpll_lock and clock.altPllLock;
-led_trig(5) <= pps_detect;
+led_trig(5) <= '0';
 led_trig(6) <= serialTx.ack;
 led_trig(7) <= reset.global or selfTrig_mode;
-led_trig(8) <= acc_beamGate;
+led_trig(8) <= '0';
 
 
 LED_CTRL: process(clock.sys)
@@ -262,12 +255,31 @@ clockGen_inst: ClockGenerator
 LVDS_out(0) <=	serialTx.serial;	--  serial comms tx
 LVDS_out(1) <=	'0';	-- not used -- PLL CLK OUTPUT ONLY!!!
 LVDS_out(2) <=	serialTx_data(0);	-- data links
-LVDS_out(3) <=	serialTx_data(1);	-- data links
-serialRx.serial 	<= LVDS_in(0);	--  serial comms rx
-acc_trig		 		<= LVDS_in(1);
+LVDS_out(3) <=  serialTx_data(1);   -- data links
+serialRx.serial     <= LVDS_in(0);  --  serial comms rx
+acc_trig            <= LVDS_in(1);
+backpressure_in_man <= LVDS_in(2);
+
+manchester_decoder_backpressure: manchester_decoder
+  port map (
+    clk    => clock.x8,
+    resetn => not reset.global,
+    i      => backpressure_in_man,
+    q      => backpressure_in);
+
+
+backpressure_cdc: sync_Bits_Altera
+  generic map(
+    BITS          => 1,
+    INIT          => x"00000000",
+    SYNC_DEPTH    => 2)
+  port map (
+    Clock  => clock.serial25,
+    Input(0)  => backpressure_in,
+    Output(0) => backpressure_in_ser);
 
 debug2 <= trig_out;
-debug3 <= trig_out_debug;
+debug3 <= '0';
    
 ------------------------------------
 --	SERIAL TX
@@ -316,6 +328,7 @@ serialTx_highSpeed_inst: serialTx_highSpeed
     input_ready => dataToSend_ready,
     input_valid => dataToSend_valid,
     input_kout  => dataToSend_kout,
+    trigger     => trig_out,
     outputMode => rxparams_acc.outputMode,
     output => serialTx_data);
 	
@@ -323,9 +336,16 @@ data_readout_control_inst: data_readout_control
   port map (
     clock            => clock,
     reset            => reset,
+    backpressure     => backpressure_in_ser,
     fifoRead         => fifoRead,
     fifoDataOut      => fifoDataOut,
     fifoOcc          => fifoOcc,
+    sys_timestamp	 => sys_timestamp,
+    sys_ts_read      => sys_ts_read,
+    sys_ts_valid     => sys_ts_valid, 
+    wr_timestamp	 => wr_timestamp,
+    wr_ts_read       => wr_ts_read,
+    wr_ts_valid      => wr_ts_valid,
     dataToSend       => dataToSend,
     dataToSend_valid => dataToSend_valid,
     dataToSend_kout  => dataToSend_kout,
@@ -368,7 +388,7 @@ reset.request <= rxparams_acc.reset_request;
 ------------------------------------
 --	DATA HANDLER 
 ------------------------------------
--- transmits the contents of the ram buffers plus other info over the uart
+-- transmits info over the low speed serial
 dataHandler_map: dataHandler port map (
         -- clock and reset signals
 		reset			   => reset.acc,
@@ -391,21 +411,16 @@ dataHandler_map: dataHandler port map (
 		Wlkn_fdbk_current  => Wlkn_fdbk_current,
 		pro_vdd			   => pro_vdd,
 		vcdl_count		   => vcdl_count,
-		timestamp		   => timestamp,
-		beamgate_timestamp => beamgate_timestamp,
-		ppsCount  		   => ppsCount,
-		beamGateCount      => beamGateCount,
+		timestamp		   => (others => '0'),
+		ppsCount  		   => (others => '0'),
         eventCount		   => eventCount,
 		readRequest		   => '0',
         ramAddress         => readAddress,
         ramData            => readData,
 		selfTrig_rateCount => selfTrig_rateCount,
 		trig_rateCount	   => trig_rateCount,
-		trig_frameType	   => trig_frameType
+		trig_frameType	   => 0
 );
-
-
-
 
 
 ------------------------------------
@@ -413,41 +428,32 @@ dataHandler_map: dataHandler port map (
 ------------------------------------
 trigger_map: trigger port map(
 			clock			   => clock,
-			reset			   => reset.global, 
+			reset			   => reset, 
 			systemTime		   => systemTime,
-			testMode		   => rxparams.testMode,
+            wrTime_pps         => wrTime_pps,
+            wrTime_fast        => wrTime_fast,
 			trigSetup		   => rxparams.trigSetup,
 			selfTrig		   => rxparams.selfTrig,
 			trigInfo		   => trigInfo,
 			acc_trig		   => acc_trig,
-			sma_trig		   => sma_trigIn xor rxparams.trigSetup.sma_invert,
 			self_trig		   => self_trig,
 			digitize_request   => digitize_request,
 			digitize_done	   => digitize_done,
 			eventCount		   => eventCount,
-			ppsCount		   => ppsCount,
-			beamGateCount	   => beamGateCount,
-			timestamp		   => timestamp,
-			beamgate_timestamp => beamgate_timestamp,
-			frameType		   => trig_frameType,
-			acc_beamGate	   => acc_beamGate,
-			trig_detect 	   => trig_detect,
-			trig_valid 		   => trig_valid,
-			trig_abort 		   => trig_abort,
-			signal_trig_detect => signal_trig_detect,
-			pps_detect 		   => pps_detect,
+			sys_timestamp      => sys_timestamp,
+            sys_ts_read        => sys_ts_read,
+            sys_ts_valid       => sys_ts_valid,
+            wr_timestamp       => wr_timestamp,
+            wr_ts_read         => wr_ts_read,
+            wr_ts_valid        => wr_ts_valid,
+            backpressure_in    => backpressure_in,
 			busy			   => trig_busy,
-			trig_event		   => trig_event,
 			trig_clear		   => trig_clear,
 			trig_out		   => trig_out,
-			trig_rate_count	   => trig_rateCount,
-            trig_out_debug     => trig_out_debug);
+			trig_rate_count	   => trig_rateCount);
 			
 
-		
-		
-	
-	
+			
 ------------------------------------
 --	SELF TRIGGER
 ------------------------------------
@@ -462,11 +468,7 @@ selfTrigger_map: selfTrigger port map(
 			rateCount => selfTrig_rateCount
 			);
 
-			
 		
-	
-
-
 ------------------------------------
 --	PSEC4 DRIVER
 ------------------------------------
@@ -609,7 +611,16 @@ SYS_TIME_GEN: fastCounter64 port map (
 
 		
 -- synchronize reset to x8 clock
-SYS_TIME_RESET: pulseSync port map (clock.sys, clock.x8, reset.global or rxparams.trigSetup.eventAndTime_reset, systemTime_reset);
+SYS_TIME_RESET: process(clock.x8)
+  variable reset_z1 : std_logic;
+  variable reset_z2 : std_logic;
+begin
+  if rising_edge(clock.x8) then
+    reset_z1 := reset.global or rxparams.trigSetup.eventAndTime_reset;
+    reset_z2 := reset_z1;
+    systemTime_reset <= reset_z2;
+  end if;
+end process;
    
 
 -- white rabbit synchronized counters for absolute time stamp

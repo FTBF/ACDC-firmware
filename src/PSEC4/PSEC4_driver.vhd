@@ -111,7 +111,7 @@ dataBuffer_map : dataBuffer port map(
 	blockSelect => PSEC4_out.TokDecode,
 	readClock	=> PSEC4_out.readClock,
 	clock			=> clock,
-	reset			=> reset.serial,
+	reset			=> reset,
 	start			=> rampDone,
     fifoRead        => fifoRead,
     fifoDataOut		=> fifoDataOut,

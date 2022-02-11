@@ -308,6 +308,7 @@ begin
       if rising_Edge(dest_clk) then
         if src_latch_sync = '1' then
           dest_params.trigSetup.mode       <= src_params_latch.trigSetup.mode;
+          dest_params.trigSetup.timeout    <= src_params_latch.trigSetup.timeout;
           dest_params.trigSetup.sma_invert <= src_params_latch.trigSetup.sma_invert;
           dest_params.selfTrig             <= src_params_latch.selfTrig;
           dest_params.Vbias                <= src_params_latch.Vbias;
@@ -318,6 +319,7 @@ begin
           dest_latch <= '1';
         else
           dest_params.trigSetup.mode       <= dest_params.trigSetup.mode;
+          dest_params.trigSetup.timeout    <= dest_params.trigSetup.timeout;
           dest_params.trigSetup.sma_invert <= dest_params.trigSetup.sma_invert;
           dest_params.selfTrig             <= dest_params.selfTrig;
           dest_params.Vbias                <= dest_params.Vbias;
@@ -333,3 +335,52 @@ begin
   
 end vhdl;  
   
+
+library IEEE;
+use     IEEE.STD_LOGIC_1164.all;
+
+entity sync_Bits_Altera is
+  generic (
+    BITS          : positive            := 1;                       -- number of bit to be synchronized
+    INIT          : std_logic_vector    := x"00000000";             -- initialization bits
+    SYNC_DEPTH    : natural range 2 to 5 := 2                       -- generate SYNC_DEPTH many stages, at least 2
+  );
+  port (
+    Clock         : in  std_logic;                                  -- <Clock>  output clock domain
+    Input         : in  std_logic_vector(BITS - 1 downto 0);        -- @async:  input bits
+    Output        : out std_logic_vector(BITS - 1 downto 0)         -- @Clock:  output bits
+  );
+end entity;
+
+
+architecture rtl of sync_Bits_Altera is
+	attribute PRESERVE          : boolean;
+	attribute ALTERA_ATTRIBUTE  : string;
+
+	-- Apply a SDC constraint to meta stable flip flop
+	attribute ALTERA_ATTRIBUTE of rtl        : architecture is "-name SDC_STATEMENT ""set_false_path -to [get_registers {*sync_Bits_Altera:*|\gen:*:Data_meta}] """;
+begin
+	gen : for i in 0 to BITS - 1 generate
+		signal Data_async        : std_logic;
+		signal Data_meta        : std_logic                                    := INIT(i);
+		signal Data_sync        : std_logic_vector(SYNC_DEPTH - 1 downto 0)    := (others => INIT(i));
+
+		-- preserve both registers (no optimization, shift register extraction, ...)
+		attribute PRESERVE of Data_meta            : signal is TRUE;
+		attribute PRESERVE of Data_sync            : signal is TRUE;
+		-- Notify the synthesizer / timing analysator to identity a synchronizer circuit
+		attribute ALTERA_ATTRIBUTE of Data_meta    : signal is "-name SYNCHRONIZER_IDENTIFICATION ""FORCED IF ASYNCHRONOUS""";
+	begin
+		Data_async  <= Input(i);
+
+		process(Clock)
+		begin
+			if rising_edge(Clock) then
+				Data_meta <= Data_async;
+				Data_sync <= Data_sync(Data_sync'high - 1 downto 0) & Data_meta;
+			end if;
+		end process;
+
+		Output(i)    <= Data_sync(Data_sync'high);
+	end generate;
+end architecture;

@@ -17,69 +17,64 @@ use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 use work.defs.all;
 use work.LibDG.pulseSync;
+use work.LibDG.pulseSync2;
 use work.LibDG.manchester_decoder;
-
+use work.components.all;
 
 entity trigger is
 	port(
-			clock						: in	clock_type;
-			reset						: in	std_logic;   
-			systemTime				: in  std_logic_vector(63 downto 0);
-			testMode					: in  testMode_type;
-			trigSetup				: in	trig_type;
-			selfTrig					: in 	selfTrig_type;
-			trigInfo					: out	trigInfo_type;
-			acc_trig					: in	std_logic;	-- trig from central card (LVDS)
-			sma_trig					: in	std_logic;	-- on-board SMA input
-			self_trig				: in	std_logic;	
-			digitize_request		: out	std_logic;
-			digitize_done			: in	std_logic;
-			eventCount				: out	std_logic_vector(31 downto 0);
-			ppsCount					: buffer std_logic_vector(31 downto 0);
-			beamGateCount			: buffer std_logic_vector(31 downto 0);
-			timestamp				: out std_logic_vector(63 downto 0);
-			beamgate_timestamp	: out std_logic_vector(63 downto 0);
-			frameType				: out natural;
-			acc_beamGate			: buffer std_logic;
-			trig_detect 			: out std_logic;
-			trig_valid 				: out std_logic;
-			trig_abort 				: out std_logic;
-			signal_trig_detect	: buffer std_logic;
-			pps_detect 				: out std_logic;
-			busy						: out std_logic;
-			trig_event				: buffer std_logic;
-			trig_clear				: buffer std_logic;
-			trig_out					: buffer std_logic;
-			trig_rate_count		: out natural;
-            trig_out_debug      : out std_logic
+			clock			 : in	clock_type;
+			reset			 : in	reset_type;   
+			systemTime		 : in  std_logic_vector(63 downto 0);
+            wrTime_pps       : in std_logic_vector(31 downto 0);
+            wrTime_fast      : in std_logic_vector(31 downto 0);
+			trigSetup		 : in	trig_type;
+			selfTrig		 : in 	selfTrig_type;
+			trigInfo		 : out	trigInfo_type;
+			acc_trig		 : in	std_logic;	-- trig from central card (LVDS)
+			self_trig		 : in	std_logic;	
+			digitize_request : out	std_logic;
+			digitize_done	 : in	std_logic;
+			eventCount		 : out	std_logic_vector(31 downto 0);
+			sys_timestamp	 : out std_logic_vector(63 downto 0);
+            sys_ts_read      : in std_logic;
+            sys_ts_valid     : out std_logic;
+            wr_timestamp	 : out std_logic_vector(63 downto 0);
+            wr_ts_read       : in std_logic;
+            wr_ts_valid      : out std_logic;
+            backpressure_in  : in std_logic;
+			busy			 : out std_logic;
+			trig_clear		 : buffer std_logic;
+			trig_out		 : buffer std_logic;
+			trig_rate_count	 : out natural
 			);
 end trigger;
 
 architecture vhdl of trigger is
 
-	signal 	acc_trig_in:	std_logic;
-	signal 	acc_trig_latch_z:	std_logic;
-	signal 	acc_trig_latch_z2: std_logic;
-    signal  acc_trig_latch_z3 : std_logic;
+    signal 	acc_trig_in:	std_logic;
+  	signal 	acc_trig_in_x:	std_logic;
 	signal 	trig_latch:	std_logic;
 	signal 	trig_latch_x:	std_logic;
 	signal 	trig_latch_z:	std_logic;
 	signal 	trig_latch_z2:	std_logic;
-    signal 	trig_latch_z3:	std_logic;  
+    signal 	trig_latch_z3:	std_logic;
+    signal  wr_trig_z1 : std_logic;
+    signal  wr_trig_z2 : std_logic;
+    signal  wr_trig_z3 : std_logic;
 	signal	trig_common: std_logic;
-	signal	resetRequest: std_logic;
 	signal	timestamp_z: std_logic_vector(63 downto 0);
+    signal	timestamp_z2: std_logic_vector(63 downto 0);
+    signal  wrTime_pps_z   : std_logic_vector(31 downto 0);
+    signal  wrTime_fast_z  : std_logic_vector(31 downto 0);
 	signal	prev_mode: natural;
-	signal 	acc_trig_z:	std_logic;
 	signal 	acc_trig_x:	std_logic;
-	signal 	beamGate:	std_logic;
-	signal 	beamGate_z:	std_logic;
-	signal 	beamGate_z2:	std_logic;
-	signal 	beamGate_latch:	std_logic;
-	signal 	beamGate_narrow:	std_logic;
-	signal	pps_trig: std_logic;
 	signal	mode_z: natural;
-	signal 	beamgate_timestamp_z: std_logic_vector(63 downto 0);
+    signal  save_timestamps : std_logic;
+    signal  save_timestamps_wr_sync : std_logic;
+    signal  save_timestamps_sys_sync : std_logic;
+    signal  wr_ts_fifo_empty : std_logic;
+    signal  sys_ts_fifo_empty : std_logic;
 	
 begin  
 
@@ -106,31 +101,20 @@ begin
 -- decode acc_trig
 manchester_decoder_inst: manchester_decoder
   port map (
-    clk    => clock.acc320,
-    resetn => not reset,
+    clk    => clock.x8,
+    resetn => not reset.global,
     i      => acc_trig,
     q      => acc_trig_in);
   
-trig_out_debug <= acc_trig_in;
-
---TRIG_SEL: process(trigSetup, acc_trig_in, acc_beamGate, pps_trig, sma_trig, self_trig)
---begin
---	case trigSetup.mode is
---		when 0 => trig_common <= '0';				-- mode 0 trigger off
---		when 1 => trig_common <= acc_trig_in;		-- mode 1 software trigger (from acc)
---		when 2 => trig_common <= acc_trig_in;		-- mode 2 sma trigger (ACC)
-----		when 3 => trig_common <= sma_trig;		-- mode 3 sma trigger (ACDC)
---		when 4 => trig_common <= self_trig;		-- mode 4 self trigger
-----		when 5 => trig_common <= (self_trig and acc_beamGate) or pps_trig;	-- mode 5 self trigger with sma validation (ACC) & multiplexed pps
-----		when 6 => trig_common <= self_trig and sma_trig;							-- mode 6 self trigger with sma validation (ACDC)
-----		when 7 => trig_common <= acc_trig_in and sma_trig;								-- mode 7 sma trigger (ACC) with sma validation (ACDC)
-----		when 8 => trig_common <= (sma_trig and acc_beamGate) or pps_trig;		-- mode 8 sma trigger (ACDC) with sma validation (ACC) & multiplexed pps
-----		when 9 => trig_common <= pps_trig;		-- mode 9 pps trigger (from ACC)
---		when others => trig_common <= '0';
---	end case;
---end process;
-
-trig_common <= self_trig;
+TRIG_ACCEPT_SEL: process(all)
+begin
+    case trigSetup.mode is
+        when 0 => trig_common <= '0';          -- mode 0 trigger off
+        when 1 => trig_common <= acc_trig_in;  -- mode 1 external source
+        when 2 => trig_common <= self_trig;    -- mode 2 self trigger
+        when others => trig_common <= '0';
+    end case;
+end process;
 
 ---------------------------------------
 -- TRIGGER LATCH
@@ -144,7 +128,6 @@ begin
 		trig_latch <= '0';
 	elsif (rising_edge(trig_common)) then
 		trig_latch <= '1';
-		beamGate_latch <= beamGate;			-- this is for modes that use pps trigger & beamgate to help decide what caused the trigger
 	end if;
 end process;
 
@@ -154,7 +137,7 @@ trig_out <= trig_latch;			-- trigger to PSEC chips
 ---------------------------------------
 -- TRIGGER TIMESTAMP GENERATOR
 ---------------------------------------
--- generate a timestamp value for when the trigger latch goes high
+-- generate a timestamp value for when the trigger latch goes high 
 
 TIMESTAMP_GEN: process(clock.x8)
 begin
@@ -168,24 +151,79 @@ begin
 	end if;
 end process;
 
----------------------------------------
--- BEAMGATE TIMESTAMP GENERATOR
----------------------------------------
--- generate a timestamp value for when the beamgate signal goes high
+pulseSync2_sys_timesave: pulseSync2
+  port map (
+    src_clk      => clock.sys,
+    src_pulse    => save_timestamps,
+    src_aresetn  => not reset.global,
+    dest_clk     => clock.x4,
+    dest_pulse   => save_timestamps_sys_sync,
+    dest_aresetn => not reset.global);
 
---BG_TIMESTAMP_GEN: process(clock.x8)
---begin
---	if (rising_edge(clock.x8)) then
---		acc_trig_latch_z <= acc_trig;		-- synchronize to fast clock
---		acc_trig_latch_z2 <= acc_trig_latch_z;
---        acc_trig_latch_z3 <= acc_trig_latch_z2;
---		if (acc_trig_latch_z2 = '1' and acc_trig_latch_z3 = '0') then	-- rising edge
---			beamgate_timestamp_z <= systemTime;
---		end if;
---	end if;
---end process;
+sys_ts_valid <= not sys_ts_fifo_empty;
 
-	
+-- Cyclone IV FIFO cannot be clocked at 320 MHz, so lets bring the data to the
+-- 160 MHz domain first (should have plenty of time, from state machine delay
+-- and trigger sync stages above)
+time_SYS_slowdown : process(clock.x4)
+begin
+  if rising_edge(clock.x4) then
+    timestamp_z2 <= timestamp_z;
+  end if;
+end process;
+
+timeFifo_SYS: timeFifo
+  port map (
+    aclr    => reset.global,
+    wrclk   => clock.x4,
+    wrreq   => save_timestamps_sys_sync,
+    data    => timestamp_z2,
+    wrfull  => open,
+    
+    rdclk   => clock.serial25,
+    rdreq   => sys_ts_read,
+    q       => sys_timestamp,
+    rdempty => sys_ts_fifo_empty
+    );
+
+WR_TIMESTAMP_GEN: process(clock.wr100)
+begin
+  if (rising_edge(clock.wr100)) then
+    wr_trig_z1 <= trig_latch;		-- synchronize to fast clock
+    wr_trig_z2 <= wr_trig_z1;
+    wr_trig_z3 <= wr_trig_z2;
+    if (wr_trig_z2 = '1' and wr_trig_z3 = '0') then	-- rising edge
+      wrTime_pps_z  <= wrTime_pps; 
+      wrTime_fast_z <= wrTime_fast; 
+    end if;
+  end if;
+end process;
+
+pulseSync2_wr_timesave: pulseSync2
+  port map (
+    src_clk      => clock.sys,
+    src_pulse    => save_timestamps,
+    src_aresetn  => not reset.global,
+    dest_clk     => clock.wr100,
+    dest_pulse   => save_timestamps_wr_sync,
+    dest_aresetn => not reset.wr);
+
+wr_ts_valid <= not wr_ts_fifo_empty;
+
+timeFifo_WR: timeFifo
+  port map (
+    aclr    => reset.wr,
+    wrclk   => clock.wr100,
+    wrreq   => save_timestamps_wr_sync,
+    data    => wrTime_pps_z & wrTime_fast_z,
+    wrfull  => open,
+    
+    rdclk   => clock.serial25,
+    rdreq   => wr_ts_read,
+    q       => wr_timestamp,
+    rdempty => wr_ts_fifo_empty
+    );
+
 	
 ---------------------------------------
 -- TRIGGER CONTROL STATE MACHINE
@@ -196,38 +234,21 @@ TRIG_CTRL: process(clock.sys)
 type state_type is (
 	TRIG_RESET, 
 	TRIG_WAIT, 
---	DISAMBIGUATE, 
-	COPY_TIMESTAMP,
+	TRIG_CONFIRM,
 	DIGITIZE_INIT, 
 	DIGITIZE_WAIT, 
 	TRIG_DONE
 );
 	
-variable t: natural;
+variable t: natural range 0 to 127;
 variable state: state_type;
-
--- flags
-variable trig_detect_flag: std_logic;
-variable trig_abort_flag: std_logic;
-variable trig_valid_flag: std_logic;
-variable trig_event_flag: std_logic;
-variable pps_detect_flag: std_logic;
-variable signal_trig_detect_flag: std_logic;
-variable timeout: natural;
 
 begin
 	if (rising_edge(clock.sys)) then
 	
-		trig_detect_flag := '0';
-		trig_valid_flag := '0';
-		trig_abort_flag := '0';
-		trig_event_flag := '0';
-		pps_detect_flag := '0';
-		signal_trig_detect_flag := '0';
-		
 		-- synchronize to sys clock
 		trig_latch_x <= trig_latch;
-		acc_trig_x <= acc_trig_in;
+        acc_trig_in_x <= acc_trig_in;
 		
 		-- reset trigger state if mode change
 		prev_mode <= trigSetup.mode;
@@ -236,136 +257,87 @@ begin
 		end if;			
 				
 		-- global reset or event count reset request
-		if (reset = '1' or trigSetup.eventAndTime_reset = '1') then 
+		if (reset.global = '1' or trigSetup.eventAndTime_reset = '1') then 
 
             digitize_request <= '0';
 			state := TRIG_RESET;
 			eventCount <= X"00000000";
-			ppsCount <= X"00000000";
+            save_timestamps <= '0';
 
 		else
 		
-			-- trigger elapsed time counter
-			if (t < 400000000) then t := t + 1; end if;		-- time since trigger
-		
-
 			case state is
-			
-			
 			
 				when TRIG_RESET =>
 				
 					trig_clear <= '1';		-- clear the latches
 					if (trig_latch_x = '0') then state := TRIG_WAIT; end if;		-- verify the latch is clear before waiting for a latch high signal
-						
 	
 	
 				when TRIG_WAIT =>				-- wait for an incoming trigger trigger signal
 									
-					trig_clear <= '0';		-- enable the trigger latches
-					
+                    trig_clear <= '0';		-- enable the trigger latches
+                    save_timestamps <= '0';
+
+                    t := trigSetup.timeout;
+                    
 					if (trig_latch_x = '1') then		-- trigger latch went high					
-						
-						trig_detect_flag := '1';
-						t := 0;		-- time since trigger 
-						
-						if (trigSetup.mode = 9) then
-							frameType <= frameType_name.pps;	-- pps frame type 
-						else
-							frameType <= frameType_name.psec;	-- default frame type = PSEC data
-						end if;
-						
-						-- In some modes, pps-beam gate disambiuation is required due to multiplexed signals 						
-                        state := COPY_TIMESTAMP;						
-										
+                        state := TRIG_CONFIRM;						
 					end if;
 				
-				
-				
-				
---				-- trigger happened but we need to decide what was the cause. It could be:				
---				-- (i) pps
---				-- (ii) beam gate [false trigger]
---				-- (iii) signal trigger
---				when DISAMBIGUATE =>		
---					
---						if (beamGate_latch = '1') then		-- signal trigger 
---							signal_trig_detect_flag := '1';
---							state := COPY_TIMESTAMP;				
---						
---						else											-- acc trig (pps or beam gate). We need to check the pulse width to determine which it was
---						
---							if (t <= 4) then					
---								
---								if (acc_trig_x = '0') then			-- acc signal went low again i.e. short pulse- it was a pps trigger									
---									
---									pps_detect_flag := '1';
---									frameType <= frameType_name.pps;		-- flag that it is a pps type trigger
---									state := COPY_TIMESTAMP;	
---								
---								end if;
---				
---							else			-- timeout. It must be a long pulse -hence it was beamgate pulse that caused the trigger
---
---								trig_abort_flag := '1';
---								state := TRIG_RESET;			-- false trigger- abort the trigger process. It was beam gate, which is not a trigger signal
---						
---							end if;
---					
---		
---						end if;
---								
 						
-						
-						
-				when COPY_TIMESTAMP =>				-- timestamp value has already  been latched but copy its value and sync to sys clk
-				
-					timestamp <= timestamp_z;
-					beamgate_timestamp <= beamgate_timestamp_z;			-- the time value of the most recent rising edge on beamgate
-                    state := DIGITIZE_INIT;
-						
-				
-				
+				when TRIG_CONFIRM =>				-- timestamp value has already been latched but copy its value and sync to sys clk
+
+                    t := t;
+                    save_timestamps <= '0';
+                    
+                    if backpressure_in = '1' then
+                      state := TRIG_RESET;
+                    else
+                      case trigSetup.mode is
+                        when 0 => state := TRIG_RESET;     -- mode 0 trigger off
+                        when 1 => state := DIGITIZE_INIT;  -- mode 1 external source
+                                  
+                        when 2 =>                          -- mode 2 self trigger
+                          if acc_trig_in_x = '1' then
+                            state := DIGITIZE_INIT;
+                          elsif t = 0 then
+                            state := TRIG_RESET;
+                          else
+                            state := state;
+                            t := t - 1;
+                          end if;
+                          
+                        when others => state := TRIG_RESET;
+                      end case;
+                    end if;
+
+                    
 				when DIGITIZE_INIT =>				-- request to start transfer of data from psec to fpga
-				
+
+                    save_timestamps <= '1';
+                  
 					digitize_request <= '1';
 					state := DIGITIZE_WAIT;
 				
 				
-				
-				
 				when DIGITIZE_WAIT =>				-- wait for the PSEC chip data to be transferred to the fpga RAM
-				
+
+                    save_timestamps <= '0';
+                  
 					digitize_request <= '0';
 					if (digitize_done = '1') then state := TRIG_DONE; end if;
-						
-										
 				
 				
 				when TRIG_DONE =>
 
-					trig_valid_flag := '1';
-					case frameType is
-						when frameType_name.pps => ppsCount <= ppsCount + 1;				 
-						when frameType_name.psec => eventCount <= eventCount + 1; trig_event_flag := '1';	
-						when others => null;
-					end case;
+                    eventCount <= eventCount + 1;
 					state := TRIG_RESET;
 					
 			end case;
 				
-			-- output flags	
-			if (trig_detect_flag = '1') then trig_detect <= '1'; else trig_detect <= '0'; end if;
-			if (trig_valid_flag = '1') then trig_valid <= '1'; else trig_valid <= '0'; end if;
-			if (trig_abort_flag = '1') then trig_abort <= '1'; else trig_abort <= '0'; end if;
-			if (pps_detect_flag = '1') then pps_detect <= '1'; else pps_detect <= '0'; end if;
-			if (signal_trig_detect_flag = '1') then signal_trig_detect <= '1'; else signal_trig_detect <= '0'; end if;
-			
-				
 			if (state = TRIG_WAIT) then busy <= '0'; else busy <= '1'; end if;
 		
-			trig_event <= trig_event_flag;
-				
 		end if;
 		
 	end if;
@@ -373,114 +345,11 @@ begin
 end process;
 
 
-----------------------------------------
----- beam gate demultiplexer
-----------------------------------------		
----- recover beam gate signal from the combined pps-beamgate signal
----- pulse width: pps < 75ns, beam gate >75ns so remove any pulses that have width <75ns
-----
----- The beam gate output pulse width will be smaller than the input width due to the time taken to check the pulse width
----- but this is not so time-critical
----- 
----- pps signal cannot be recovered because rising edge must be passed directly to trigger, 
----- hence you don't know how long the pulse is until it's too late
-----
----- There are two versions of the beam gate output:
----- beamGate			the version that will be latched by the trigger mechanism
----- beamGate_narrow	the version that will be applied to the AND gate to enable the trigger signal
-----
----- the only difference is that beamGate starts slightly before bg narrow and ends slightly after. (1 clock @160MHz difference at each end)
----- the reason is to remove any problems or glitches if a signal occurs at the extreme ends of the window
----- These problems are due to the fact that this circuit is asynchronous
----- With the two versions, the trigger mechanism can be sure that if it latches beamGate low at trigger time
----- the cause was definitely not the signal trigger as it is gated off
 --
---DEMUX: process(clock.x4)
---variable t: natural range 0 to 255:= 0;
---variable bg: std_logic;		-- variable used to denote beamGate from which the outputs are generated
---variable bg_z: std_logic;	-- delayed version of above
---variable state: natural range 0 to 255:= 0;
---begin
---	if (rising_edge(clock.x4)) then
---	
---      if (t < 255) then t := t + 1; end if;		-- time since last rising edge on acc_trig
---					
---		
---		acc_trig_z <= acc_trig_in;
---		mode_z <= trigSetup.mode;
---		
---		-- beam gate function
---		if (acc_trig_z = '0') then 			
---			
---			t := 0; 
---			bg := '0';
---		
---		elsif (t > 12) then		-- 75ns
---			
---			if (mode_z = 5 or mode_z = 8) then bg := '1';	end if;		-- set high but only if in beamgate mode
---		
---		end if;
---					
---					
---		-- generate the output signals. Two windows- one inside the other			
---		case bg is
---		
---			when '0' =>
---		
---				beamGate_narrow <= '0';
---				if (bg_z = '0') then beamGate <= '0'; end if;
---			
---			when others =>
---		
---				beamGate <= '1';
---				if (bg_z = '1') then beamGate_narrow <= '1'; end if;
---		
---		end case;
---		
---		
---		-- record prev value
---		bg_z := bg;
---		
---	end if;
---end process;
---
---
----- pps trigger recovery. Note that it will go high on pps or beam gate pulse initially, until the pulse length is checked
---pps_trig <= (not beamGate) and acc_trig_in;			-- pps trigger is forced low during beam gate high
---acc_beamGate <= beamGate_narrow;		-- acc_beamGate is used in trig function
---
----- essentially (not beamGate) selects pps trigger and beamGate_narrow selects signal trigger,
----- in a way that they don't overlap, i.e. there is a small gap where neither is selected.
---
---
---
---
---BEAMGATE_COUNTER: process(clock.sys)
---begin
---	if (rising_edge(clock.sys)) then
---		beamGate_z <= beamGate;
---		beamGate_z2 <= beamGate;
---		if (reset = '1' or trigSetup.eventAndTime_reset = '1') then 
---			beamGateCount <= X"00000000";
---		elsif (beamGate_z = '1' and beamGate_z2 = '0') then
---			beamGateCount <= beamGateCount + 1;
---		end if;
---	end if;
---end process;
---
---
-	
-------------------
--- TRIG INFO
-------------------
--- read back as part of the psec data frame
--- serves as confirmation of the trigger setup status
-
---
-trigInfo(0,0) <= beamgate_timestamp(63 downto 48);
-trigInfo(0,1) <= beamgate_timestamp(47 downto 32);
-trigInfo(0,2) <= beamgate_timestamp(31 downto 16);
-trigInfo(0,3) <= beamgate_timestamp(15 downto 0);
+--trigInfo(0,0) <= beamgate_timestamp(63 downto 48);
+--trigInfo(0,1) <= beamgate_timestamp(47 downto 32);
+--trigInfo(0,2) <= beamgate_timestamp(31 downto 16);
+--trigInfo(0,3) <= beamgate_timestamp(15 downto 0);
 
 trigInfo(0,4)(15 downto 12) <= std_logic_vector(to_unsigned(trigSetup.mode, 4));
 trigInfo(0,4)(11 downto 10) <= trigSetup.sma_invert & selfTrig.sign;
@@ -507,40 +376,40 @@ trigInfo(2,4) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(4, 0), 1
 ------------------------------
 -- count the number of trig events in one second 
 
-RATE_COUNT_GEN: process(clock.sys)
-variable count: natural;
-variable t: natural;
-begin
-	if (rising_edge(clock.sys)) then
-		
-		if (reset = '1' or trigSetup.eventAndTime_reset = '1') then
-		
-			t := 0;
-			count := 0;
-			trig_rate_count <= 0;
-			
-			
-		else
-		
-		
-			if (trig_event = '1') then
-				if (count < trigRate_MaxCount) then count := count + 1; end if;
-			end if;				
-			
-			t := t + 1;		-- clock cycle counter
-			 
-			if (t = 40000000) then		-- after 1 second record the count and then reset 
-
-				t := 0;
-				trig_rate_count <= count;
-				count := 0;
-				
-			end if;
-			
-		end if;
-		
-	end if;
-end process;
+--RATE_COUNT_GEN: process(clock.sys)
+--variable count: natural;
+--variable t: natural;
+--begin
+--	if (rising_edge(clock.sys)) then
+--		
+--		if (reset.global = '1' or trigSetup.eventAndTime_reset = '1') then
+--		
+--			t := 0;
+--			count := 0;
+--			trig_rate_count <= 0;
+--			
+--			
+--		else
+--		
+--		
+--			if (trig_event = '1') then
+--				if (count < trigRate_MaxCount) then count := count + 1; end if;
+--			end if;				
+--			
+--			t := t + 1;		-- clock cycle counter
+--			 
+--			if (t = 40000000) then		-- after 1 second record the count and then reset 
+--
+--				t := 0;
+--				trig_rate_count <= count;
+--				count := 0;
+--				
+--			end if;
+--			
+--		end if;
+--		
+--	end if;
+--end process;
 
 	
 end vhdl;

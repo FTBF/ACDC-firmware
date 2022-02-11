@@ -18,11 +18,11 @@ create_clock 	-period "25.000 ns"  [get_ports clockIn.jcpll]
 create_clock 	-period "10.000 ns"  [get_ports clockIn.wr100]
 create_clock 	-period "25000.000 ns"  [get_ports {jcpll_ctrl.spi_clock}]
 				
-create_clock -period 40MHz 	[get_ports PSEC4_out(0).readClock]					
-create_clock -period 40MHz 	[get_ports PSEC4_out(1).readClock]
-create_clock -period 40MHz 	[get_ports PSEC4_out(2).readClock]					
-create_clock -period 40MHz 	[get_ports PSEC4_out(3).readClock]
-create_clock -period 40MHz 	[get_ports PSEC4_out(4).readClock]
+create_clock -period 40MHz 	[get_ports PSEC4_out[0].readClock]
+create_clock -period 40MHz 	[get_ports PSEC4_out[1].readClock]
+create_clock -period 40MHz 	[get_ports PSEC4_out[2].readClock]					
+create_clock -period 40MHz 	[get_ports PSEC4_out[3].readClock]
+create_clock -period 40MHz 	[get_ports PSEC4_out[4].readClock]
 
 #create_clock [get_ports lvds_rx_in(1)]
 
@@ -48,7 +48,8 @@ derive_clock_uncertainty
 # ** Input/Output Delays
 #    -------------------
 
-
+#set_max_delay -from [get_ports {PSEC4_in[*].trig[*]}] -to [get_registers {trigger:trigger_map|trig_latch}] 10.000	
+#set_max_delay -from [get_keepers {trigger:trigger_map|trig_latch*}] -to [get_keepers {PSEC4_out*.extTrig}] 5.000
 
 
 # ** Tpd requirements
