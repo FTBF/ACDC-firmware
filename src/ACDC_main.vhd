@@ -183,11 +183,13 @@ end process;
 RESET_SYNC : process(clock.sys)
   variable reset_sync_1 : std_logic;
   variable reset_sync_2 : std_logic;
+  variable reset_sync_3 : std_logic;
 begin
   if rising_edge(clock.sys) then
-    reset_sync_1 := reset.acc;
+    reset.global <= reset_sync_3 and clock.altpllLock;
+    reset_sync_3 := reset_sync_2;
     reset_sync_2 := reset_sync_1;
-    reset.global <= reset_sync_2;
+    reset_sync_1 := reset.acc;
   end if;
 end process;
 
@@ -203,9 +205,9 @@ RESET_SYNC_25MHz : process(clock.serial25)
   variable reset_sync_2 : std_logic;
 begin
   if rising_edge(clock.serial25) then
-    reset_sync_1 := reset_acc_z;
-    reset_sync_2 := reset_sync_1;
     reset.serial <= reset_sync_2;
+    reset_sync_2 := reset_sync_1;
+    reset_sync_1 := reset_acc_z;
   end if;
 end process;
 
@@ -214,9 +216,9 @@ RESET_SYNC_125MHz : process(clock.serial125)
   variable reset_sync_2 : std_logic;
 begin
   if rising_edge(clock.serial125) then
-    reset_sync_1 := reset.serial;
-    reset_sync_2 := reset_sync_1;
     reset.serialFast <= reset_sync_2;
+    reset_sync_2 := reset_sync_1;
+    reset_sync_1 := reset.serial;
   end if;
 end process;
 
@@ -225,9 +227,9 @@ RESET_SYNC_WR100MHz : process(clock.wr100)
   variable reset_sync_2 : std_logic;
 begin
   if falling_edge(clock.wr100) then
-    reset_sync_1 := reset.acc;
-    reset_sync_2 := reset_sync_1;
     reset.wr <= reset_sync_2;
+    reset_sync_2 := reset_sync_1;
+    reset_sync_1 := reset.acc;
   end if;
 end process;
 
@@ -279,7 +281,7 @@ backpressure_cdc: sync_Bits_Altera
     Output(0) => backpressure_in_ser);
 
 debug2 <= trig_out;
-debug3 <= '0';
+debug3 <= backpressure_in;
    
 ------------------------------------
 --	SERIAL TX
