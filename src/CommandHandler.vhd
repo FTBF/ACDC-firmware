@@ -101,7 +101,8 @@ begin
 					params_z.DLL_Vdd(i)			<= 16#0CFF#; 
 					params_z.RO_Target(i)		<= 16#CA00#;
 				end loop;
-				params_acc.calEnable			<= (others => '0'); 
+				params_acc.calEnable			<= (others => '0');
+                params_acc.calInputSel          <= '0';
 				params_z.testMode.sequencedPsecData <= '0';
 				params_z.testMode.trig_noTransfer <= '0';
                 params_acc.PLL_ConfigRequest <= '0';		 
@@ -250,8 +251,9 @@ begin
 					when x"C" =>	-- calibration		
 						
 						case cmdOption is
-							when x"0" => params_acc.calEnable(14 downto 0) <= din(14 downto 0);
-							when others => null;
+                          when x"0" => params_acc.calEnable(14 downto 0) <= din(14 downto 0);
+                          when x"1" => params_acc.calInputSel <= din(0);
+                          when others => null;
 						end case;
 						
 

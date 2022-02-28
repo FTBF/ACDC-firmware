@@ -37,6 +37,7 @@ entity ACDC_main is
 		PSEC4_trigSign			: out    std_logic;
         enableV1p2a             : out    std_logic;
 		calEnable				: inout  std_logic_vector(14 downto 0);
+        calInputSel             : out    std_logic;
 		DAC						: out    DAC_array_type;
 		SMA_J3					: in     std_logic;
 		ledOut     				: out    std_logic_vector(8 downto 0);
@@ -186,7 +187,7 @@ RESET_SYNC : process(clock.sys)
   variable reset_sync_3 : std_logic;
 begin
   if rising_edge(clock.sys) then
-    reset.global <= reset_sync_3 and clock.altpllLock;
+    reset.global <= reset_sync_3 or not clock.altpllLock;
     reset_sync_3 := reset_sync_2;
     reset_sync_2 := reset_sync_1;
     reset_sync_1 := reset.acc;
@@ -385,6 +386,7 @@ cmd_handler_map: commandHandler port map (
 		);
 
 calEnable 	<= rxparams_acc.calEnable;
+calInputSel <= rxparams_acc.calInputSel;
 reset.request <= rxparams_acc.reset_request;
 		
 ------------------------------------

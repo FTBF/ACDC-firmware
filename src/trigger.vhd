@@ -1,3 +1,4 @@
+
 ---------------------------------------------------------------------------------
 -- Univ. of Chicago  
 --    
@@ -112,6 +113,7 @@ begin
         when 0 => trig_common <= '0';          -- mode 0 trigger off
         when 1 => trig_common <= acc_trig_in;  -- mode 1 external source
         when 2 => trig_common <= self_trig;    -- mode 2 self trigger
+        when 3 => trig_common <= self_trig;    -- mode 3 self trigger with ACC accept
         when others => trig_common <= '0';
     end case;
 end process;
@@ -297,8 +299,8 @@ begin
                       case trigSetup.mode is
                         when 0 => state := TRIG_RESET;     -- mode 0 trigger off
                         when 1 => state := DIGITIZE_INIT;  -- mode 1 external source
-                                  
-                        when 2 =>                          -- mode 2 self trigger
+                        when 2 => state := DIGITIZE_INIT;  -- mode 2 self trigger
+                        when 3 =>                          -- mode 3 self trigger with ACC accept
                           if acc_trig_in_x = '1' then
                             state := DIGITIZE_INIT;
                           elsif t = 0 then
