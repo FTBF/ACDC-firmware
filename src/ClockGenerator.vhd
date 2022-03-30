@@ -82,6 +82,7 @@ pll_wr_inst: pll_wr
     areset => '0',
     inclk0 => clockIn.wr100,
     c0     => clock.wr100,
+    c1     => clock.wr250,
     locked => clock.wrpllLock);
 
 

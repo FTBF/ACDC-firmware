@@ -117,6 +117,9 @@ use work.components.all;
 
 
 entity pulseSync2 is
+  Generic(
+    RESET_VAL : std_logic := '0'
+    );
   Port(
     src_clk     : in std_logic;
     src_pulse   : in std_logic;
@@ -129,13 +132,21 @@ end pulseSync2;
 
 architecture vhdl of pulseSync2 is
   signal src_pulse_1 : std_logic;
-  signal src_pulse_2 : std_logic;
+  signal src_pulse_2 : std_logic_vector(0 downto 0);
   
-  signal sync_pulse_1 : std_logic;
-  signal sync_pulse_2 : std_logic;
-  
-  signal dest_pulse_1 : std_logic;  
+  signal dest_pulse_1 : std_logic_vector(0 downto 0);
+  signal dest_pulse_2 : std_logic;  
 
+  component sync_Bits_Altera is
+    generic (
+      BITS       : positive;
+      INIT       : std_logic_vector;
+      SYNC_DEPTH : natural range 2 to 5);
+    port (
+      Clock  : in  std_logic;
+      Input  : in  std_logic_vector(BITS - 1 downto 0);
+      Output : out std_logic_vector(BITS - 1 downto 0));
+  end component sync_Bits_Altera;
 begin
   
   -- src clock domain edge detection
@@ -143,30 +154,34 @@ begin
   begin
     if src_aresetn = '0' then
       src_pulse_1 <= '0';
-      src_pulse_2 <= '0';
+      src_pulse_2 <= "0";
     else
       if rising_Edge(src_clk) then
         src_pulse_1 <= src_pulse;
-        src_pulse_2 <= (src_pulse and not src_pulse_1) xor src_pulse_2;
+        src_pulse_2(0) <= (src_pulse and not src_pulse_1) xor src_pulse_2(0);
       end if;
     end if;
   end process;
 
+  sync_Bits_Altera_1: entity work.sync_Bits_Altera
+    generic map (
+      BITS       => 1,
+      INIT       => "0000",
+      SYNC_DEPTH => 2)
+    port map (
+      Clock  => dest_clk,
+      Input  => src_pulse_2,
+      Output => dest_pulse_1);
+
   dest_clk_domain : process(dest_clk, dest_aresetn)
   begin
     if dest_aresetn = '0' then
-      dest_pulse_1 <= '0';
+      dest_pulse_2 <= RESET_VAL;
       dest_pulse <= '0';
-
-      sync_pulse_1 <= '0';
-      sync_pulse_2 <= '0';
     else
       if rising_Edge(dest_clk) then
-        sync_pulse_1 <= src_pulse_2;
-        sync_pulse_2 <= sync_pulse_1;
-
-        dest_pulse_1 <= sync_pulse_2;
-        dest_pulse <= dest_pulse_1 xor sync_pulse_2;
+        dest_pulse_2 <= dest_pulse_1(0);
+        dest_pulse <= dest_pulse_1(0) xor dest_pulse_2;
       end if;
     end if;
   end process;

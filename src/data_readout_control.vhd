@@ -74,33 +74,6 @@ architecture vhdl of data_readout_control is
 
 begin
 
---  skid_buffer_lsb: skid_buffer
---    generic map (
---      NBITS => 9)
---    port map (
---      clock                => clock.serial25,
---      reset                => reset.serial,
---      data_in              => dataToSend_kout_z(0) & dataToSend_z(0),
---      data_in_ready        => dataToSend_ready_z(0),
---      data_in_valid        => dataToSend_valid_z(0),
---      data_out(7 downto 0) => dataToSend(0),
---      data_out(8)          => dataToSend_kout(0),
---      data_out_ready       => dataToSend_ready(0),
---      data_out_valid       => dataToSend_valid(0));
---
---  skid_buffer_msb: skid_buffer
---    generic map (
---      NBITS => 9)
---    port map (
---      clock                => clock.serial25,
---      reset                => reset.serial,
---      data_in              => dataToSend_kout_z(1) & dataToSend_z(1),
---      data_in_ready        => dataToSend_ready_z(1),
---      data_in_valid        => dataToSend_valid_z(1),
---      data_out(7 downto 0) => dataToSend(1),
---      data_out(8)          => dataToSend_kout(1),
---      data_out_ready       => dataToSend_ready(1),
---      data_out_valid       => dataToSend_valid(1));
 
   dataToSend <= dataToSend_z;
   dataToSend_kout <= dataToSend_kout_z;

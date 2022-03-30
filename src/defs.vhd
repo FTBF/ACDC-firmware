@@ -154,6 +154,7 @@ type clock_type is record
     serial25    : std_logic;
     serial125   : std_logic;
     wr100       : std_logic;
+    wr250       : std_logic;
     usb         :	std_logic;  
     update		:	std_logic;
     altpllLock  :	std_logic;

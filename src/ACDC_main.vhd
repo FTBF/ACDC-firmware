@@ -117,7 +117,10 @@ architecture vhdl of	ACDC_main is
     signal wrTime_fast         : std_logic_vector(31 downto 0);
     signal wrTime_pps          : std_logic_vector(31 downto 0);
     signal pps                 : std_logic;
-    signal pps_z               : std_logic;
+    signal pps_z               : std_logic_vector(1 downto 0);
+    signal reset_wr_z          : std_logic;
+
+    signal trig_out_debug   : std_logic;
 		
 begin
 
@@ -175,7 +178,12 @@ begin
     reset.acc <= '1';
   elsif (rising_edge(clock.acc40)) then 				
     if (reset.request = '1') then t := "000000000"; end if;   -- restart counter if new reset request					 										
-    if (t >= 400) then r := '0'; else r := '1'; t := t + 1; end if;
+    if (t >= 400) then
+      r := '0';
+    else
+      r := '1';
+      t := t + 1;
+    end if;
     reset.acc <= r;
   end if;
 end process;
@@ -186,8 +194,9 @@ RESET_SYNC : process(clock.sys)
   variable reset_sync_2 : std_logic;
   variable reset_sync_3 : std_logic;
 begin
+  reset.global <= reset_sync_3 or not clock.altpllLock;
+
   if rising_edge(clock.sys) then
-    reset.global <= reset_sync_3 or not clock.altpllLock;
     reset_sync_3 := reset_sync_2;
     reset_sync_2 := reset_sync_1;
     reset_sync_1 := reset.acc;
@@ -223,16 +232,15 @@ begin
   end if;
 end process;
 
-RESET_SYNC_WR100MHz : process(clock.wr100)
-  variable reset_sync_1 : std_logic;
-  variable reset_sync_2 : std_logic;
-begin
-  if falling_edge(clock.wr100) then
-    reset.wr <= reset_sync_2;
-    reset_sync_2 := reset_sync_1;
-    reset_sync_1 := reset.acc;
-  end if;
-end process;
+RESET_SYNC_WR250MHz: sync_Bits_Altera
+  generic map (
+    BITS       => 1,
+    INIT       => x"00000000",
+    SYNC_DEPTH => 2)
+  port map (
+    Clock  => clock.wr250,
+    Input(0)  => reset.acc,
+    Output(0) => reset.wr);
 
 -- fix the 1.2V analog linear regular on 
 enableV1p2a <= '1';
@@ -281,7 +289,7 @@ backpressure_cdc: sync_Bits_Altera
     Input(0)  => backpressure_in,
     Output(0) => backpressure_in_ser);
 
-debug2 <= trig_out;
+debug2 <= trig_out_debug;
 debug3 <= backpressure_in;
    
 ------------------------------------
@@ -454,6 +462,7 @@ trigger_map: trigger port map(
 			busy			   => trig_busy,
 			trig_clear		   => trig_clear,
 			trig_out		   => trig_out,
+            trig_out_debug     => trig_out_debug,
 			trig_rate_count	   => trig_rateCount);
 			
 
@@ -628,19 +637,21 @@ end process;
    
 
 -- white rabbit synchronized counters for absolute time stamp
--- wrTime_fast : 100 MHz counter reset to 0 by PPS
+-- wrTime_fast : 250 MHz counter reset to 0 by PPS
 -- wrTime_pps : 1 Hz counter triggered by PPS signal
-wrTiming : process ( clock.wr100 )
+wrTiming : process ( clock.wr250 )
 begin
-  -- use falling edge of 100 MHz white rabbit because 1PPS is synchronous to the
+  -- use falling edge of 250 MHz white rabbit because 1PPS is synchronous to the
   -- rising edge 
-  if falling_edge(clock.wr100) then
-    pps_z <= pps;
-    if reset.wr = '1' then
+  if falling_edge(clock.wr250) then
+    pps_z(0) <= pps;
+    pps_z(1) <= pps_z(0);
+    reset_wr_z <= reset.wr;
+    if reset_wr_z = '1' then
       wrTime_fast <= (others => '0');
       wrTime_pps <= (others => '0');
     else
-      if pps = '1' and pps_z = '0' then
+      if pps_z = "01" then
         wrTime_fast <= (others => '0');
         wrTime_pps <= std_logic_vector(unsigned(wrTime_pps) + 1);
       else

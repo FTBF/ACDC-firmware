@@ -268,6 +268,7 @@ component trigger is
 			busy						: out std_logic;
 			trig_clear				: buffer std_logic;
 			trig_out					: buffer std_logic;
+            trig_out_debug   : out std_logic;
 			trig_rate_count		: out natural);
 	end component;
 
@@ -399,8 +400,10 @@ component pll_wr is
     areset : IN  STD_LOGIC := '0';
     inclk0 : IN  STD_LOGIC := '0';
     c0     : OUT STD_LOGIC;
-    locked : OUT STD_LOGIC);
+    c1     : OUT STD_LOGIC;
+    locked : OUT STD_LOGIC); 
 end component pll_wr;
+
 
 end components;
 

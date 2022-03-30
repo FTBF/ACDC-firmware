@@ -47,6 +47,7 @@ entity trigger is
 			busy			 : out std_logic;
 			trig_clear		 : buffer std_logic;
 			trig_out		 : buffer std_logic;
+            trig_out_debug   : out std_logic;
 			trig_rate_count	 : out natural
 			);
 end trigger;
@@ -106,7 +107,9 @@ manchester_decoder_inst: manchester_decoder
     resetn => not reset.global,
     i      => acc_trig,
     q      => acc_trig_in);
-  
+
+trig_out_debug <= acc_trig_in;
+
 TRIG_ACCEPT_SEL: process(all)
 begin
     case trigSetup.mode is
@@ -188,9 +191,9 @@ timeFifo_SYS: timeFifo
     rdempty => sys_ts_fifo_empty
     );
 
-WR_TIMESTAMP_GEN: process(clock.wr100)
+WR_TIMESTAMP_GEN: process(clock.wr250)
 begin
-  if (rising_edge(clock.wr100)) then
+  if (rising_edge(clock.wr250)) then
     wr_trig_z1 <= trig_latch;		-- synchronize to fast clock
     wr_trig_z2 <= wr_trig_z1;
     wr_trig_z3 <= wr_trig_z2;
@@ -206,7 +209,7 @@ pulseSync2_wr_timesave: pulseSync2
     src_clk      => clock.sys,
     src_pulse    => save_timestamps,
     src_aresetn  => not reset.global,
-    dest_clk     => clock.wr100,
+    dest_clk     => clock.wr250,
     dest_pulse   => save_timestamps_wr_sync,
     dest_aresetn => not reset.wr);
 
@@ -215,7 +218,7 @@ wr_ts_valid <= not wr_ts_fifo_empty;
 timeFifo_WR: timeFifo
   port map (
     aclr    => reset.wr,
-    wrclk   => clock.wr100,
+    wrclk   => clock.wr250,
     wrreq   => save_timestamps_wr_sync,
     data    => wrTime_pps_z & wrTime_fast_z,
     wrfull  => open,
