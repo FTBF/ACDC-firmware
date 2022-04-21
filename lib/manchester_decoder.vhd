@@ -1,6 +1,3 @@
--- based on: https://lauri.xn--vsandi-pxa.com/hdl/fsm/manchester.html, by Lauri Võsandi
--- Note, the above citation contains several mistakes (is wrong at almost all steps) which have been correced below
-
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -14,50 +11,36 @@ entity manchester_decoder is
 end manchester_decoder;
 
 architecture behaviour of manchester_decoder is
-  type state_type is ( S0, S1, S2, S3, S4, S5, S6 );
-
-  signal q_next     : std_logic;
-  signal state      : state_type;
-  signal state_next : state_type;
+  signal Q0 : std_logic;
+  signal Q1 : std_logic;
+  signal Q2 : std_logic;
+  signal Q3 : std_logic;
+  signal Q4 : std_logic;
+  signal STROBE : std_logic;
+  signal EDGE : std_logic;  
 begin
-    u1: process(all)
-    begin
-      case state is
-        when S0 =>
-          if i = '1' then state_next <= S4; q_next <= '1';
-          else            state_next <= S1; q_next <= '0';
-          end if;
 
-        when S1 =>        state_next <= S2; q_next <= '0';
+  EDGE <= (Q0 xor (not Q1));
+  
+  u2: process(clk, resetn)
+  begin
+    if resetn = '0' then
+      Q0 <= '0';
+      Q1 <= '0';
+      Q2 <= '0';
+      Q3 <= '0';
+      Q4 <= '0';
+    elsif rising_edge(clk) then
+      Q0 <= i;
+      Q1 <= not Q0;
+      Q2 <= (EDGE or Q2) and (not Q4);
+      Q3 <= Q2;
+      Q4 <= Q3 and (Q4 or Q2);
+      STROBE <= (not Q2) and (not Q4) and EDGE;
 
-        when S2 =>
-          if i = '1' then state_next <= S3; q_next <= '0';
-          else            state_next <= S0; q_next <= '0';
-          end if;
-
-        when S3 =>        state_next <= S0; q_next <= '0';
-
-        when S4 =>        state_next <= S5; q_next <= '1';
-
-        when S5 =>
-          if i = '1' then state_next <= S0; q_next <= '1';
-          else            state_next <= S6; q_next <= '1';
-          end if;
-
-        when S6 =>        state_next <= S0; q_next <= '1';
-                          
-      end case;
-    end process;
-
-    -- State transition occurs during rising edge of the clock
-    u2: process(clk, resetn)
-    begin
-        if resetn = '0' then
-          state <= S0;
-          q <= '0';
-        elsif rising_edge(clk) then
-          state <= state_next;
-          q <= q_next;  
-        end if;
-    end process;
+      if STROBE = '1' then
+        q <= Q1;
+      end if;
+    end if;
+  end process;
 end behaviour;

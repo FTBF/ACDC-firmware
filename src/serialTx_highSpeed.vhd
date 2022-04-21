@@ -69,26 +69,30 @@ begin  -- architecture vhdl
     signal enc_kin : std_logic;
     signal serial_cnt : unsigned(2 downto 0);
     signal trigger_z : std_logic;
+    signal trigger_z2 : std_logic;
   
   begin
 
-    trig_sync : pulseSync
-      port map (
-        inClock    => clk.serial25,
-        outClock   => clk.serial25,
-        din_valid  => trigger,
-        dout_valid => trigger_z);
+--    trig_sync : pulseSync
+--      port map (
+--        inClock    => clk.serial25,
+--        outClock   => clk.serial25,
+--        din_valid  => trigger,
+--        dout_valid => trigger_z);
     
     output_mux : process(clk.serial25)
     begin
       if rising_edge(clk.serial25) then
+        trigger_z <= trigger;
+        trigger_z2 <= trigger_z;
+        
         outputMode_z <= outputMode;
         case outputMode_z is
           when "01"   =>
             output_z <= prbs_pattern(7 downto 0);
             enc_kin <= '0';
           when "11"   =>
-            if trigger_Z = '1' then 
+            if trigger_z2 = '0' and trigger_Z = '1' then 
               output_z <= X"FB";
               enc_kin <= '1';
             elsif input_valid(iLink) = '1' and input_ready(iLink) = '1' then
