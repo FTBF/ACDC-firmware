@@ -191,14 +191,14 @@ begin
         case wordCount is
           when "000"&X"00" =>   dataToSend_z <= (X"ac", X"9c");
           when "000"&X"01" =>   dataToSend_z <= (std_logic_vector(eventCount(15 downto 8)), std_logic_vector(eventCount(7 downto 0)));
-          when "000"&X"02" =>   dataToSend_z <= (sys_timestamp(63 downto 56), sys_timestamp(55 downto 48));
-          when "000"&X"03" =>   dataToSend_z <= (sys_timestamp(47 downto 40), sys_timestamp(39 downto 32));
-          when "000"&X"04" =>   dataToSend_z <= (sys_timestamp(31 downto 24), sys_timestamp(23 downto 16));
-          when "000"&X"05" =>   dataToSend_z <= (sys_timestamp(15 downto  8), sys_timestamp( 7 downto  0));
-          when "000"&X"06" =>   dataToSend_z <= (wr_timestamp(63 downto 56),  wr_timestamp(55 downto 48));
-          when "000"&X"07" =>   dataToSend_z <= (wr_timestamp(47 downto 40),  wr_timestamp(39 downto 32));
-          when "000"&X"08" =>   dataToSend_z <= (wr_timestamp(31 downto 24),  wr_timestamp(23 downto 16));
-          when "000"&X"09" =>   dataToSend_z <= (wr_timestamp(15 downto  8),  wr_timestamp( 7 downto  0));
+          when "000"&X"04" =>   dataToSend_z <= (sys_timestamp(63 downto 56), sys_timestamp(55 downto 48));
+          when "000"&X"05" =>   dataToSend_z <= (sys_timestamp(47 downto 40), sys_timestamp(39 downto 32));
+          when "000"&X"06" =>   dataToSend_z <= (sys_timestamp(31 downto 24), sys_timestamp(23 downto 16));
+          when "000"&X"07" =>   dataToSend_z <= (sys_timestamp(15 downto  8), sys_timestamp( 7 downto  0));
+          when "000"&X"08" =>   dataToSend_z <= (wr_timestamp(63 downto 56),  wr_timestamp(55 downto 48));
+          when "000"&X"09" =>   dataToSend_z <= (wr_timestamp(47 downto 40),  wr_timestamp(39 downto 32));
+          when "000"&X"0a" =>   dataToSend_z <= (wr_timestamp(31 downto 24),  wr_timestamp(23 downto 16));
+          when "000"&X"0b" =>   dataToSend_z <= (wr_timestamp(15 downto  8),  wr_timestamp( 7 downto  0));
           when "000"&X"0F" =>   dataToSend_z <= (X"ca", X"c9");
           when others => dataToSend_z <= (X"00", x"00");
         end case;

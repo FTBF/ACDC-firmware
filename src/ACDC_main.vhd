@@ -290,7 +290,7 @@ backpressure_cdc: sync_Bits_Altera
     Output(0) => backpressure_in_ser);
 
 debug2 <= trig_out_debug;
-debug3 <= backpressure_in;
+debug3 <= rxparams_acc.IDrequest;
    
 ------------------------------------
 --	SERIAL TX
