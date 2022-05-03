@@ -101,28 +101,27 @@ end component;
 component dataHandler is
 	port (
       reset				 : 	in   	std_logic;
-      clock				 : 	in		std_logic;
-      jcpll_clock        :  in      std_logic;
+      clock				 : 	in		clock_type;
       serialRx			 :	in		serialRx_type;
       trigInfo			 :  in 	trigInfo_type;
       rxParams           :  in      RX_Param_jcpll_type;
       Wlkn_fdbk_current	 :	in		natArray;
       pro_vdd			 :	in		natArray16;
       vcdl_count		 :	in		array32;
-      timestamp			 :	in		std_logic_vector(63 downto 0);
-      ppsCount  		 :	in		std_logic_vector(31 downto 0);
       eventCount		 :	in		std_logic_vector(31 downto 0);
       IDrequest      	 :	in		std_logic;
-      readRequest		 :	in		std_logic;
-      ramAddress         :  out   natural;
-      ramData            :  in    wordArray;
       txData	         : 	out	std_logic_vector(7 downto 0);
       txReq	 	   		 : 	out	std_logic;
       txAck			     : 	in 	std_logic; 
       selfTrig_rateCount :  in 	selfTrig_rateCount_array;
-      trig_rateCount	 :	in		natural;
-      trig_frameType	 :	in		natural;
-      txBusy			 :	out	std_logic			-- a flag used for diagnostics and frame time measurement
+      txBusy			 :	out	std_logic;			-- a flag used for diagnostics and frame time measurement
+      fifoOcc            :  in  Array13;
+      trig_count_all     :  in  std_logic_vector(15 downto 0);
+      trig_count	     :  in  std_logic_vector(15 downto 0);
+      backpressure       :  in  std_logic;
+      wr_timeOcc         :  in  std_logic_vector(3 downto 0);
+      sys_timeOcc        :  in  std_logic_vector(3 downto 0)
+
 );
 end component;
 		
@@ -269,7 +268,11 @@ component trigger is
 			trig_clear				: buffer std_logic;
 			trig_out					: buffer std_logic;
             trig_out_debug   : out std_logic;
-			trig_rate_count		: out natural);
+			trig_count_all   : out std_logic_vector(15 downto 0);
+            trig_count	     : out std_logic_vector(15 downto 0);
+            trig_count_reset : in  std_logic;
+            wr_timeOcc       : out std_logic_vector(3 downto 0);
+            sys_timeOcc      : out std_logic_vector(3 downto 0));
 	end component;
 
 
@@ -392,6 +395,7 @@ component timeFifo is
     wrreq   : IN  STD_LOGIC;
     q       : OUT STD_LOGIC_VECTOR (63 DOWNTO 0);
     rdempty : OUT STD_LOGIC;
+    rdusedw	: OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
     wrfull  : OUT STD_LOGIC);
 end component timeFifo;
 

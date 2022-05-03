@@ -31,11 +31,11 @@ end record;
 -- VERSION INFO
 --------------------------------
 constant firmwareVersion: firmwareVersion_type:= (
-	
-	number => 	x"0404", 
-	year => 		x"2022",	
-	MMDD => 		x"0425"			-- month, date
-	
+  
+  number =>     x"0405", 
+  year =>       x"2022",    
+  MMDD =>       x"0503"         -- month, date
+  
 );
 --
 -- Version history:

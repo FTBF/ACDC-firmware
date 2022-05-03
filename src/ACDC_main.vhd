@@ -63,12 +63,12 @@ architecture vhdl of	ACDC_main is
 	signal	trigInfo           : trigInfo_type;
 	signal	selfTrig_mode      : std_logic;
 	signal	selfTrig_rateCount : selfTrig_rateCount_array;
-	signal	trig_rateCount     : natural;
+	signal  trig_count_all     : std_logic_vector(15 downto 0);
+    signal  trig_count	       : std_logic_vector(15 downto 0);
+    signal  trig_count_reset   : std_logic;
 	signal	FLL_lock           : std_logic_vector(N-1 downto 0);
 	signal	rampDone           : std_logic_vector(7 downto 0);
 	signal	eventCount         : std_logic_vector(31 downto 0);		-- increments for every trigger event (i.e. only signal triggers, not for pps triggers)
-	signal	readAddress        : natural;
-	signal	readData           : wordArray;
  	signal	Wlkn_fdbk_current  : natArray;
  	signal	VCDL_count         : array32;
 	signal	dacData            : dacChain_data_array_type;
@@ -109,6 +109,7 @@ architecture vhdl of	ACDC_main is
     signal wr_ts_valid         : std_logic;
 
     signal backpressure_in     : std_logic;
+    signal backpressure_in_x   : std_logic;
     signal backpressure_in_man : std_logic;
     signal backpressure_in_ser : std_logic;
     
@@ -119,6 +120,10 @@ architecture vhdl of	ACDC_main is
     signal pps                 : std_logic;
     signal pps_z               : std_logic_vector(1 downto 0);
     signal reset_wr_z          : std_logic;
+
+    signal wr_timeOcc          : std_logic_vector(3 downto 0);
+    signal sys_timeOcc         : std_logic_vector(3 downto 0);
+
 
     signal trig_out_debug   : std_logic;
 		
@@ -276,8 +281,16 @@ manchester_decoder_backpressure: manchester_decoder
     clk    => clock.x8,
     resetn => not reset.global,
     i      => backpressure_in_man,
-    q      => backpressure_in);
+    q      => backpressure_in_x);
 
+
+backpressure_sync : process(clock.sys)
+begin
+  if rising_edge(clock.sys) then
+    backpressure_in <= backpressure_in_x;
+  end if;
+end process;
+  
 
 backpressure_cdc: sync_Bits_Altera
   generic map(
@@ -290,7 +303,7 @@ backpressure_cdc: sync_Bits_Altera
     Output(0) => backpressure_in_ser);
 
 debug2 <= trig_out_debug;
-debug3 <= rxparams_acc.IDrequest;
+debug3 <= backpressure_in_ser;
    
 ------------------------------------
 --	SERIAL TX
@@ -404,8 +417,7 @@ reset.request <= rxparams_acc.reset_request;
 dataHandler_map: dataHandler port map (
         -- clock and reset signals
 		reset			   => reset.acc,
-		clock			   => clock.acc40,
-        jcpll_clock        => clock.sys,
+		clock			   => clock,
 
         --data stream and control signals
         txData	           => serialTx.data,
@@ -423,15 +435,17 @@ dataHandler_map: dataHandler port map (
 		Wlkn_fdbk_current  => Wlkn_fdbk_current,
 		pro_vdd			   => pro_vdd,
 		vcdl_count		   => vcdl_count,
-		timestamp		   => (others => '0'),
-		ppsCount  		   => (others => '0'),
         eventCount		   => eventCount,
-		readRequest		   => '0',
-        ramAddress         => readAddress,
-        ramData            => readData,
 		selfTrig_rateCount => selfTrig_rateCount,
-		trig_rateCount	   => trig_rateCount,
-		trig_frameType	   => 0
+        trig_count_all     => trig_count_all,
+        trig_count	       => trig_count,
+        backpressure       => backpressure_in,
+
+        --serial25 paramters, these need CDC!!!
+        fifoOcc            => fifoOcc,
+        wr_timeOcc         => wr_timeOcc,
+        sys_timeOcc        => sys_timeOcc
+
 );
 
 
@@ -463,7 +477,12 @@ trigger_map: trigger port map(
 			trig_clear		   => trig_clear,
 			trig_out		   => trig_out,
             trig_out_debug     => trig_out_debug,
-			trig_rate_count	   => trig_rateCount);
+            trig_count_all     => trig_count_all,
+            trig_count	       => trig_count,
+            trig_count_reset   => trig_count_reset,
+            wr_timeOcc         => wr_timeOcc,
+            sys_timeOcc        => sys_timeOcc
+);
 			
 
 			

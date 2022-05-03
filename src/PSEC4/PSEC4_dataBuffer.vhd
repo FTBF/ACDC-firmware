@@ -90,7 +90,10 @@ begin
 	
 	if (rising_edge(clock.sys)) then
 			
-		if (reset.global = '1')  then	state := IDLE; end if;
+      if (reset.global = '1')  then
+        state := IDLE;
+      else
+        
 
 		
 		case state is
@@ -181,6 +184,7 @@ begin
 					
 					
 		end case;
+      end if;
 		
 	end if;
 	

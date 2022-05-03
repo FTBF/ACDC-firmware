@@ -48,7 +48,11 @@ entity trigger is
 			trig_clear		 : buffer std_logic;
 			trig_out		 : buffer std_logic;
             trig_out_debug   : out std_logic;
-			trig_rate_count	 : out natural
+			trig_count_all   : out std_logic_vector(15 downto 0);
+            trig_count	     : out std_logic_vector(15 downto 0);
+            trig_count_reset : in  std_logic;
+            wr_timeOcc       : out std_logic_vector(3 downto 0);
+            sys_timeOcc      : out std_logic_vector(3 downto 0)
 			);
 end trigger;
 
@@ -127,9 +131,9 @@ end process;
 
 
 -- Edge detect
-TRIG_EDGE_DETECT: process(trig_common, trig_clear)
+TRIG_EDGE_DETECT: process(trig_common, trig_clear, reset.global)
 begin
-	if (trig_clear = '1') then
+	if (trig_clear = '1' or reset.global = '1') then
 		trig_latch <= '0';
 	elsif (rising_edge(trig_common)) then
 		trig_latch <= '1';
@@ -188,7 +192,8 @@ timeFifo_SYS: timeFifo
     rdclk   => clock.serial25,
     rdreq   => sys_ts_read,
     q       => sys_timestamp,
-    rdempty => sys_ts_fifo_empty
+    rdempty => sys_ts_fifo_empty,
+    rdusedw => sys_timeOcc
     );
 
 WR_TIMESTAMP_GEN: process(clock.wr250)
@@ -213,7 +218,8 @@ pulseSync2_wr_timesave: pulseSync2
     dest_pulse   => save_timestamps_wr_sync,
     dest_aresetn => not reset.wr);
 
-wr_ts_valid <= not wr_ts_fifo_empty;
+-- hack to keep fifo "open" if clock is not present
+wr_ts_valid <= (not wr_ts_fifo_empty) or (not clock.wrpllLock);
 
 timeFifo_WR: timeFifo
   port map (
@@ -226,7 +232,8 @@ timeFifo_WR: timeFifo
     rdclk   => clock.serial25,
     rdreq   => wr_ts_read,
     q       => wr_timestamp,
-    rdempty => wr_ts_fifo_empty
+    rdempty => wr_ts_fifo_empty,
+    rdusedw => wr_timeOcc
     );
 
 	
@@ -268,6 +275,8 @@ begin
 			state := TRIG_RESET;
 			eventCount <= X"00000000";
             save_timestamps <= '0';
+            trig_count_all  <= (others => '0');
+            trig_count	    <= (others => '0');
 
 		else
 		
@@ -287,7 +296,8 @@ begin
                     t := trigSetup.timeout;
                     
 					if (trig_latch_x = '1') then		-- trigger latch went high					
-                        state := TRIG_CONFIRM;						
+                      state := TRIG_CONFIRM;
+                      trig_count_all <= std_logic_vector(unsigned(trig_count_all) + 1);
 					end if;
 				
 						
@@ -321,6 +331,8 @@ begin
 				when DIGITIZE_INIT =>				-- request to start transfer of data from psec to fpga
 
                     save_timestamps <= '1';
+                    
+                    trig_count <= std_logic_vector(unsigned(trig_count) + 1);
                   
 					digitize_request <= '1';
 					state := DIGITIZE_WAIT;
