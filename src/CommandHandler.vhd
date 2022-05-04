@@ -91,7 +91,7 @@ begin
 				
 				-- POWER-ON DEFAULT VALUES
 				--------------------------
-				
+				-- WARNING: also set defaults in param_handshake_sync
                 for i in 0 to N-1 loop
                     for j in 0 to M-1 loop
                       params_z.selfTrig.threshold(j, i)	<= 0;

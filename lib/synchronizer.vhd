@@ -319,6 +319,23 @@ begin
   begin
     if dest_aresetn = '0' then
       dest_latch <= '1';
+
+      -- WARNING: also set defaults in commandHandler
+      dest_params.trigSetup.mode       <= 0;
+      dest_params.trigSetup.timeout    <= 0;
+      dest_params.trigSetup.sma_invert <= '0';
+      for i in 0 to N-1 loop
+        for j in 0 to M-1 loop
+          dest_params.selfTrig.threshold(i, j)	<= 0;
+        end loop;
+        dest_params.selfTrig.mask(i)    <= "000000";
+        dest_params.Vbias(i)			<= 16#0800#;
+        dest_params.DLL_Vdd(i)			<= 16#0CFF#; 
+        dest_params.RO_Target(i)		<= 16#CA00#;
+      end loop;
+      dest_params.testMode.sequencedPsecData <= '0';
+      dest_params.testMode.trig_noTransfer <= '0';
+
     else
       if rising_Edge(dest_clk) then
         if src_latch_sync = '1' then
