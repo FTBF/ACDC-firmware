@@ -46,7 +46,9 @@ entity PSEC4_driver is
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
         fifoOcc             : out std_logic_vector(12 downto 0);
         readoutDone         : out std_logic;
-		FLL_lock				: out	std_logic
+		FLL_lock				: out	std_logic;
+        backpressure            : out std_logic;
+        backpressure_in         : in  std_logic
 		);
 	
 end PSEC4_driver;
@@ -116,7 +118,10 @@ dataBuffer_map : dataBuffer port map(
     fifoRead        => fifoRead,
     fifoDataOut		=> fifoDataOut,
     fifoOcc         => fifoOcc,
-	done			=> psecReadoutDone);
+	done			=> psecReadoutDone,
+    backpressure    => backpressure,
+    backpressure_in => backpressure_in
+);
 
 readoutDone <= psecReadoutDone;
 

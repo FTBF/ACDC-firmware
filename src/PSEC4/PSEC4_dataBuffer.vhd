@@ -33,7 +33,9 @@ entity dataBuffer is
 		fifoRead         		:	in	    std_logic; 
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
         fifoOcc             : out std_logic_vector(12 downto 0);
-		done					:	out	std_logic);	-- the psec data has been read out and stored in fifo
+		done					:	out	std_logic;
+        backpressure            : out std_logic;
+        backpressure_in         : in  std_logic);	-- the psec data has been read out and stored in fifo
 		
 		
 end dataBuffer;
@@ -44,6 +46,7 @@ signal	writeEnable: std_logic;
 signal	writeData: std_logic_vector(15 downto 0);
 signal	blockSel: natural;
 signal	sample_wrAddr: unsigned(7 downto 0);
+signal  fifoOcc_rd : std_logic_vector(12 downto 0);
 
 begin
 		
@@ -61,12 +64,16 @@ txFifo: txFifo_hs
     rdempty => open,
     rdusedw => fifoOcc,
     wrfull  => open,
-    wrusedw => open);
+    wrusedw => fifoOcc_rd);
 
+-- make sure we never overfill the FIFO (which can hold 5 events)
+backpressure <= '1' when unsigned(fifoOcc_rd) > (256*6*4 + 5) else '0';
 	
 -- write address
 --writeAddress <= "000" & channel_wrAddr_slv & sample_wrAddr_slv;	-- 3 bit channel number + 8 bit sample number
-	
+
+
+
 -- psec4 control signals
 blockSelect <= std_logic_vector(to_unsigned(blockSel,3));	
 
@@ -107,7 +114,7 @@ begin
 				writeEnable	<= '0';
 				blockSel  	<= 5; -- clears ASIC token
 				done	 		<= '0';
-				if (start = '1') then state := CLK0; end if;
+				if (start = '1' and backpressure_in = '0') then state := CLK0; end if;
 								
 		
 			when CLK0 => readClock <= '1'; state := RD_SETUP;

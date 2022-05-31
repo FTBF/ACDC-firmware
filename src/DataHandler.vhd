@@ -35,12 +35,10 @@ entity dataHandler is
     vcdl_count		   :	in		array32;
     eventCount		   :	in		std_logic_vector(31 downto 0);
     IDrequest		   :	in		std_logic;
-    ramData            :    in      wordArray;
     txData	           : 	out	    std_logic_vector(7 downto 0);
     txReq			   : 	out	    std_logic;
     txAck              : 	in 	    std_logic; 
     selfTrig_rateCount :    in 	    selfTrig_rateCount_array;
-    trig_frameType	   :	in		natural;
     txBusy			   :	out	    std_logic;			-- a flag used for diagnostics and frame time measurement
     fifoOcc            :    in      Array13;
     trig_count_all     :    in      std_logic_vector(15 downto 0);

@@ -15,7 +15,8 @@ entity serialTx_highSpeed is
     input_valid : in std_logic_vector(1 downto 0);
     input_kout  : in std_logic_vector(1 downto 0);
 
-    trigger     : in std_logic;
+    trigger          : in std_logic;
+    backpressure_out : in std_logic;
     
     outputMode  : in  std_logic_vector(1 downto 0);
     output      : out std_logic_vector(1 downto 0)
@@ -70,6 +71,8 @@ begin  -- architecture vhdl
     signal serial_cnt : unsigned(2 downto 0);
     signal trigger_z : std_logic;
     signal trigger_z2 : std_logic;
+    signal backpressure_out_z  : std_logic;
+    signal backpressure_out_z2 : std_logic;
   
   begin
 
@@ -85,6 +88,9 @@ begin  -- architecture vhdl
       if rising_edge(clk.serial25) then
         trigger_z <= trigger;
         trigger_z2 <= trigger_z;
+
+        backpressure_out_z <= backpressure_out;
+        backpressure_out_z2 <= backpressure_out_z;
         
         outputMode_z <= outputMode;
         case outputMode_z is
@@ -92,7 +98,13 @@ begin  -- architecture vhdl
             output_z <= prbs_pattern(7 downto 0);
             enc_kin <= '0';
           when "11"   =>
-            if trigger_z2 = '0' and trigger_Z = '1' then 
+            if    backpressure_out_z2 = '0' and backpressure_out_z = '1' then
+              output_z <= X"3C";
+              enc_kin <= '1';
+            elsif backpressure_out_z2 = '1' and backpressure_out_z = '0' then
+              output_z <= X"5C";
+              enc_kin <= '1';
+            elsif trigger_z2 = '0' and trigger_Z = '1' then 
               output_z <= X"FB";
               enc_kin <= '1';
             elsif input_valid(iLink) = '1' and input_ready(iLink) = '1' then
@@ -109,7 +121,7 @@ begin  -- architecture vhdl
       end if;
     end process;
 
-    input_ready(iLink) <= '1' when trigger_z = '0' and outputMode_z = "11" else '0';
+    input_ready(iLink) <= '1' when (trigger_z = '0' or (backpressure_out_z2 xor backpressure_out_z) = '1') and outputMode_z = "11" else '0';
 
     encoder_8b10b_inst: encoder_8b10b
       port map (

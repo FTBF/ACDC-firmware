@@ -44,6 +44,7 @@ entity trigger is
             wr_ts_read       : in std_logic;
             wr_ts_valid      : out std_logic;
             backpressure_in  : in std_logic;
+            backpressure_in_acdc : in std_logic;
 			busy			 : out std_logic;
 			trig_clear		 : buffer std_logic;
 			trig_out		 : buffer std_logic;
@@ -306,7 +307,7 @@ begin
                     t := t;
                     save_timestamps <= '0';
                     
-                    if backpressure_in = '1' then
+                    if backpressure_in = '1' or backpressure_in_acdc = '1' then
                       state := TRIG_RESET;
                     else
                       case trigSetup.mode is

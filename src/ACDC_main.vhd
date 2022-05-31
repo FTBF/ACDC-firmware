@@ -112,6 +112,9 @@ architecture vhdl of	ACDC_main is
     signal backpressure_in_x   : std_logic;
     signal backpressure_in_man : std_logic;
     signal backpressure_in_ser : std_logic;
+
+    signal backpressure_acdc    : std_logic_vector(N-1 downto 0);
+    signal backpressure_in_acdc : std_logic;
     
     signal  serialTx_data      : std_logic_vector(1 downto 0);
 
@@ -303,7 +306,7 @@ backpressure_cdc: sync_Bits_Altera
     Output(0) => backpressure_in_ser);
 
 debug2 <= trig_out_debug;
-debug3 <= backpressure_in_ser;
+debug3 <= self_trig;
    
 ------------------------------------
 --	SERIAL TX
@@ -353,6 +356,7 @@ serialTx_highSpeed_inst: serialTx_highSpeed
     input_valid => dataToSend_valid,
     input_kout  => dataToSend_kout,
     trigger     => trig_out,
+    backpressure_out => backpressure_in_acdc,
     outputMode => rxparams_acc.outputMode,
     output => serialTx_data);
 	
@@ -473,6 +477,7 @@ trigger_map: trigger port map(
             wr_ts_read         => wr_ts_read,
             wr_ts_valid        => wr_ts_valid,
             backpressure_in    => backpressure_in,
+            backpressure_in_acdc => backpressure_in_acdc,
 			busy			   => trig_busy,
 			trig_clear		   => trig_clear,
 			trig_out		   => trig_out,
@@ -508,6 +513,7 @@ selfTrigger_map: selfTrigger port map(
 -- global to all PSEC chips
 PSEC4_freq_sel <= '0';
 PSEC4_trigSign <= rxparams.selfTrig.sign;
+backpressure_in_acdc <= or_reduce(backpressure_acdc);
 
 -- driver for each PSEC chip
 PSEC4_drv: for i in N-1 downto 0 generate
@@ -533,7 +539,10 @@ PSEC4_drv: for i in N-1 downto 0 generate
         fifoDataOut		  => fifoDataOut(i),
         fifoOcc           => fifoOcc(i),
         readoutDone       => psecDataStored(i),
-		FLL_lock		  => FLL_lock(i));
+		FLL_lock		  => FLL_lock(i),
+        backpressure      => backpressure_acdc(i),
+        backpressure_in   => backpressure_in_acdc
+);
 end generate;
 
 

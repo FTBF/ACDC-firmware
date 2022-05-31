@@ -92,7 +92,9 @@ component dataBuffer is
 		fifoRead         		:	in	    std_logic; 
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
         fifoOcc             : out std_logic_vector(12 downto 0);
-		done					:	out	std_logic);	-- the psec data has been read out and stored in ram	
+		done					:	out	std_logic; 	-- the psec data has been read out and stored in ram	
+        backpressure            : out std_logic;
+        backpressure_in         : in  std_logic);
 		
 end component;
       
@@ -221,7 +223,9 @@ component PSEC4_driver is
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
         fifoOcc             : out std_logic_vector(12 downto 0);
         readoutDone         : out std_logic;
-		FLL_lock				: out std_logic
+		FLL_lock				: out std_logic;
+        backpressure            : out std_logic;
+        backpressure_in         : in  std_logic
 );
 	
 end component;
@@ -264,6 +268,7 @@ component trigger is
             wr_ts_read       : in std_logic;
             wr_ts_valid      : out std_logic;
             backpressure_in  : in std_logic;
+            backpressure_in_acdc : in std_logic;
 			busy						: out std_logic;
 			trig_clear				: buffer std_logic;
 			trig_out					: buffer std_logic;
@@ -328,15 +333,16 @@ end component ddr_iobuf;
 -- high speed serial IO 
 component serialTx_highSpeed is
   port (
-    clk         : in  clock_type;
-    reset       : in  reset_type;
-    input       : in  hs_input_array;
-    input_ready : out std_logic_vector(1 downto 0);
-    input_valid : in  std_logic_vector(1 downto 0);
-    input_kout  : in  std_logic_vector(1 downto 0);
-    trigger     : in  std_logic;
-    outputMode  : in  std_logic_vector(1 downto 0);
-    output      : out std_logic_vector(1 downto 0)); 
+    clk              : in  clock_type;
+    reset            : in  reset_type;
+    input            : in  hs_input_array;
+    input_ready      : out std_logic_vector(1 downto 0);
+    input_valid      : in  std_logic_vector(1 downto 0);
+    input_kout       : in  std_logic_vector(1 downto 0);
+    trigger          : in  std_logic;
+    backpressure_out : in std_logic;
+    outputMode       : in  std_logic_vector(1 downto 0);
+    output           : out std_logic_vector(1 downto 0)); 
 end component serialTx_highSpeed;
 
 
