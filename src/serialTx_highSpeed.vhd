@@ -121,7 +121,7 @@ begin  -- architecture vhdl
       end if;
     end process;
 
-    input_ready(iLink) <= '1' when (trigger_z = '0' or (backpressure_out_z2 xor backpressure_out_z) = '1') and outputMode_z = "11" else '0';
+    input_ready(iLink) <= '1' when (not (trigger_z = '1' and trigger_z2 = '0') and ((backpressure_out_z2 xor backpressure_out_z) = '0')) and outputMode_z = "11" else '0';
 
     encoder_8b10b_inst: encoder_8b10b
       port map (
