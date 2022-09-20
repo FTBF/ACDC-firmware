@@ -32,9 +32,9 @@ end record;
 --------------------------------
 constant firmwareVersion: firmwareVersion_type:= (
   
-  number =>     x"0406", 
+  number =>     x"0407", 
   year =>       x"2022",    
-  MMDD =>       x"0531"         -- month, date
+  MMDD =>       x"0914"         -- month, date
   
 );
 --
@@ -424,6 +424,7 @@ type RX_Param_acc_type is record
   calInputSel             : std_logic;
   reset_request           : std_logic;   
   IDrequest               : std_logic;
+  IDpage                  : std_logic_vector(3 downto 0);
   PLL_resetRequest        : std_logic;   
   PLL_ConfigRequest       : std_logic;   
   PLL_ConfigReg           : std_logic_vector(31 downto 0);   

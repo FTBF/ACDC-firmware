@@ -33,8 +33,10 @@ entity dataHandler is
     Wlkn_fdbk_current  :	in		natArray;
     pro_vdd			   :	in		natArray16;
     vcdl_count		   :	in		array32;
+    FLL_lock           :    in      std_logic_vector(N-1 downto 0);
     eventCount		   :	in		std_logic_vector(31 downto 0);
     IDrequest		   :	in		std_logic;
+    IDpage             :    in      std_logic_vector(3 downto 0);
     txData	           : 	out	    std_logic_vector(7 downto 0);
     txReq			   : 	out	    std_logic;
     txAck              : 	in 	    std_logic; 
@@ -229,40 +231,57 @@ end process;
 --------------------------------------------
 -- ID FRAME DATA
 --------------------------------------------              
-IDframe_data(0) <= x"1234";
-IDframe_data(1) <= x"BBBB";
-IDframe_data(2) <= firmwareVersion.number;
-IDframe_data(3) <= firmwareVersion.year;
-IDframe_data(4) <= firmwareVersion.MMDD;
-IDframe_data(5) <= x"000" & "00" & backpressure & serialRx.disparity_error;
-IDframe_data(6) <= x"000" & clock.altpllLock & clock.accpllLock & clock.serialpllLock & clock.wrpllLock;
-IDframe_data(7) <= x"0000";
-IDframe_data(8) <= x"0000";
-IDframe_data(9) <= info(0,1);	-- wlkn feedback current (channel 0)		
-IDframe_data(10) <= info(0,2);	-- wlkn feedback target (channel 0)	
-IDframe_data(11) <= (others => '0');
-IDframe_data(12) <= (others => '0');
-IDframe_data(13) <= (others => '0');
-IDframe_data(14) <= (others => '0');
-IDframe_data(15) <= std_logic_vector(eventCount(31 downto 16));
-IDframe_data(16) <= std_logic_vector(eventCount(15 downto 0));
-IDframe_data(17) <= std_logic_vector(IDframeCount(31 downto 16));
-IDframe_data(18) <= std_logic_vector(IDframeCount(15 downto 0));
-IDframe_data(19) <= trig_count_all;
-IDframe_data(20) <= trig_count;
-IDframe_data(21) <= "000" & fifoOcc(0);
-IDframe_data(22) <= "000" & fifoOcc(1);
-IDframe_data(23) <= "000" & fifoOcc(2);
-IDframe_data(24) <= "000" & fifoOcc(3);
-IDframe_data(25) <= "000" & fifoOcc(4);
-IDframe_data(26) <= x"000" & wr_timeOcc;
-IDframe_data(27) <= x"000" & sys_timeOcc;
-IDframe_data(28) <= std_logic_vector(serialNumber(31 downto 16));
-IDframe_data(29) <= std_logic_vector(serialNumber(15 downto 0));
-IDframe_data(30) <= x"BBBB";
-IDframe_data(31) <= x"4321";
-
-
+Reply_frame_mux : process(all)
+begin
+  
+  if IDpage = X"0" then
+    IDframe_data(0) <= x"1234";
+    IDframe_data(1) <= x"BBBB";
+    IDframe_data(2) <= firmwareVersion.number;
+    IDframe_data(3) <= firmwareVersion.year;
+    IDframe_data(4) <= firmwareVersion.MMDD;
+    IDframe_data(5) <= x"000" & "00" & backpressure & serialRx.disparity_error;
+    IDframe_data(6) <= x"0" & "000" & FLL_lock & clock.altpllLock & clock.accpllLock & clock.serialpllLock & clock.wrpllLock;
+    IDframe_data(7) <= x"0000";
+    IDframe_data(8) <= x"0000";
+    IDframe_data(9) <= info(0,1);	-- wlkn feedback current (channel 0)		
+    IDframe_data(10) <= info(0,2);	-- wlkn feedback target (channel 0)	
+    IDframe_data(11) <= (others => '0');
+    IDframe_data(12) <= (others => '0');
+    IDframe_data(13) <= (others => '0');
+    IDframe_data(14) <= (others => '0');
+    IDframe_data(15) <= std_logic_vector(eventCount(31 downto 16));
+    IDframe_data(16) <= std_logic_vector(eventCount(15 downto 0));
+    IDframe_data(17) <= std_logic_vector(IDframeCount(31 downto 16));
+    IDframe_data(18) <= std_logic_vector(IDframeCount(15 downto 0));
+    IDframe_data(19) <= trig_count_all;
+    IDframe_data(20) <= trig_count;
+    IDframe_data(21) <= "000" & fifoOcc(0);
+    IDframe_data(22) <= "000" & fifoOcc(1);
+    IDframe_data(23) <= "000" & fifoOcc(2);
+    IDframe_data(24) <= "000" & fifoOcc(3);
+    IDframe_data(25) <= "000" & fifoOcc(4);
+    IDframe_data(26) <= x"000" & wr_timeOcc;
+    IDframe_data(27) <= x"000" & sys_timeOcc;
+    IDframe_data(28) <= std_logic_vector(serialNumber(31 downto 16));
+    IDframe_data(29) <= std_logic_vector(serialNumber(15 downto 0));
+    IDframe_data(30) <= x"BBBB";
+    IDframe_data(31) <= x"4321";
+  else
+    IDframe_data(0) <= x"1234";
+    IDframe_data(1) <= x"BBBB";
+    for i in 2 to 15 loop
+      IDframe_data(i) <= info(to_integer(unsigned(IDpage))+1, i-2);
+    end loop;
+    for i in 16 to 29 loop
+      IDframe_data(i) <= (others => '0');
+    end loop;
+    IDframe_data(30) <= x"BBBB";
+    IDframe_data(31) <= x"4321";
+    
+  end if;
+  
+end process;
                
    
 	 

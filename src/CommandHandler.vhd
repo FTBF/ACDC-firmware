@@ -108,6 +108,7 @@ begin
                 params_acc.PLL_ConfigRequest <= '0';		 
                 params_acc.PLL_resetRequest <= '0';	 
                 params_acc.outputMode <= "00";
+                params_acc.IDpage <= "0000";
                 
 				-- trig
 				params_z.trigSetup.mode 	<= 0;
@@ -258,13 +259,15 @@ begin
 						
 
 						
-					when x"D" =>	-- data 
-						
-						case cmdOption is
-							when x"0" => params_acc.IDrequest <= '1';		-- request to send an ID data frame							
-							when others => null;
-						end case;
+					when x"D" =>	-- data
 
+                      case cmdOption is
+                        
+                        when x"0" => 	-- request to send an ID data frame
+                          params_acc.IDrequest <= '1';
+                          params_acc.IDpage <= cmdValue(3 downto 0);
+                          when others => null;
+                      end case;
 						
 					
 					when x"E" =>	-- led control

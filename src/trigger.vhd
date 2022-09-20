@@ -17,9 +17,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 use work.defs.all;
-use work.LibDG.pulseSync;
-use work.LibDG.pulseSync2;
-use work.LibDG.manchester_decoder;
+use work.LibDG.all;
 use work.components.all;
 
 entity trigger is
@@ -82,6 +80,7 @@ architecture vhdl of trigger is
     signal  save_timestamps_sys_sync : std_logic;
     signal  wr_ts_fifo_empty : std_logic;
     signal  sys_ts_fifo_empty : std_logic;
+    signal  trigInfo_z		 : trigInfo_type;
 	
 begin  
 
@@ -364,29 +363,46 @@ end process;
 
 
 --
---trigInfo(0,0) <= beamgate_timestamp(63 downto 48);
---trigInfo(0,1) <= beamgate_timestamp(47 downto 32);
---trigInfo(0,2) <= beamgate_timestamp(31 downto 16);
---trigInfo(0,3) <= beamgate_timestamp(15 downto 0);
+--trigInfo_z(0,0) <= beamgate_timestamp(63 downto 48);
+--trigInfo_z(0,1) <= beamgate_timestamp(47 downto 32);
+--trigInfo_z(0,2) <= beamgate_timestamp(31 downto 16);
+--trigInfo_z(0,3) <= beamgate_timestamp(15 downto 0);
 
-trigInfo(0,4)(15 downto 12) <= std_logic_vector(to_unsigned(trigSetup.mode, 4));
-trigInfo(0,4)(11 downto 10) <= trigSetup.sma_invert & selfTrig.sign;
-trigInfo(0,4)(9 downto 0) <= "00000" & std_logic_vector(to_unsigned(selfTrig.coincidence_min, 5));
-
---
-trigInfo(1,0) <= "0000000000" & selfTrig.mask(0);
-trigInfo(1,1) <= "0000000000" & selfTrig.mask(1);
-trigInfo(1,2) <= "0000000000" & selfTrig.mask(2);
-trigInfo(1,3) <= "0000000000" & selfTrig.mask(3);
-trigInfo(1,4) <= "0000000000" & selfTrig.mask(4);
+trigInfo_z(0,4)(15 downto 12) <= std_logic_vector(to_unsigned(trigSetup.mode, 4));
+trigInfo_z(0,4)(11 downto 10) <= trigSetup.sma_invert & selfTrig.sign;
+trigInfo_z(0,4)(9 downto 0) <= "00000" & std_logic_vector(to_unsigned(selfTrig.coincidence_min, 5));
 
 --
-trigInfo(2,0) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(0, 0), 12));
-trigInfo(2,1) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(1, 0), 12));
-trigInfo(2,2) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(2, 0), 12));
-trigInfo(2,3) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(3, 0), 12));
-trigInfo(2,4) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(4, 0), 12));
+trigInfo_z(1,0) <= "0000000000" & selfTrig.mask(0);
+trigInfo_z(1,1) <= "0000000000" & selfTrig.mask(1);
+trigInfo_z(1,2) <= "0000000000" & selfTrig.mask(2);
+trigInfo_z(1,3) <= "0000000000" & selfTrig.mask(3);
+trigInfo_z(1,4) <= "0000000000" & selfTrig.mask(4);
 
+--
+trigInfo_z(2,0) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(0, 0), 12));
+trigInfo_z(2,1) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(1, 0), 12));
+trigInfo_z(2,2) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(2, 0), 12));
+trigInfo_z(2,3) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(3, 0), 12));
+trigInfo_z(2,4) <= x"0" & std_logic_vector(to_unsigned(selfTrig.threshold(4, 0), 12));
+
+syncLoopi : for i in 0 to 2 generate
+  syncLoopj : for j in 0 to 4 generate
+    param_sync : handshake_sync
+      generic map (
+        WIDTH => 16
+        )
+    port map (
+      src_clk      => clock.sys,
+      src_params   => trigInfo_z(i, j),
+      src_aresetn  => not reset.global,
+      dest_clk     => clock.acc40,
+      dest_params  => trigInfo(i, j),
+      dest_aresetn => not reset.acc
+      );
+  end generate;
+end generate;
+  
 
 
 ------------------------------

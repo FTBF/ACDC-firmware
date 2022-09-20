@@ -416,3 +416,111 @@ begin
 		Output(i)    <= Data_sync(Data_sync'high);
 	end generate;
 end architecture;
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use work.defs.all;
+use work.components.all;
+use work.pulseSync2;
+
+entity handshake_sync is
+  generic (
+    WIDTH : natural
+  );
+  port (
+    src_clk : in std_logic;
+    src_params : in std_logic_vector(WIDTH-1 downto 0);
+    src_aresetn : in std_logic;
+
+    dest_clk : in std_logic;
+    dest_params : out std_logic_vector(WIDTH-1 downto 0);
+    dest_aresetn : in std_logic
+  );
+end entity handshake_sync;
+
+architecture vhdl of handshake_sync is
+
+  component pulseSync2 is
+    Generic(
+      RESET_VAL : std_logic := '0'
+    );
+    port (
+      src_clk      : in  std_logic;
+      src_pulse    : in  std_logic;
+      src_aresetn  : in  std_logic;
+      dest_clk     : in  std_logic;
+      dest_pulse   : out std_logic;
+      dest_aresetn : in  std_logic);
+  end component pulseSync2;
+
+  signal src_params_latch : std_logic_vector(WIDTH-1 downto 0);
+  signal src_latch        : std_logic;
+  signal src_latch_sync   : std_logic;
+  signal dest_latch       : std_logic;
+  signal dest_latch_sync  : std_logic;
+
+begin
+
+  src2dest_sync : pulseSync2
+  port map (
+    src_clk      => src_clk,
+    src_pulse    => src_latch,
+    src_aresetn  => src_aresetn,
+    dest_clk     => dest_clk,
+    dest_pulse   => src_latch_sync,
+    dest_aresetn => dest_aresetn
+  );
+  
+  dest2src_sync : pulseSync2
+  generic map (
+    RESET_VAL => '1'
+    )
+  port map (
+    src_clk      => dest_clk,
+    src_pulse    => dest_latch,
+    src_aresetn  => dest_aresetn,
+    dest_clk     => src_clk,
+    dest_pulse   => dest_latch_sync,
+    dest_aresetn => src_aresetn
+  );
+
+  src_clk_domain : process(src_clk, src_aresetn)
+  begin
+    if src_aresetn = '0' then
+      src_params_latch <= (others => '0');
+      src_latch <= '0';
+    else
+      if rising_Edge(src_clk) then
+        if dest_latch_sync = '1' then
+          src_params_latch <= src_params;
+          src_latch <= '1';
+        else
+          src_params_latch <= src_params_latch;
+          src_latch <= '0';
+        end if;
+      end if;
+    end if;
+  end process;    
+
+  dest_clk_domain : process(dest_clk, dest_aresetn)
+  begin
+    if dest_aresetn = '0' then
+      dest_latch <= '0';
+      dest_params <= (others => '0');
+    else
+      if rising_Edge(dest_clk) then
+        if src_latch_sync = '1' then
+          dest_params <= src_params_latch;
+          dest_latch <= '1';
+        else
+          dest_params <= dest_params;
+          dest_latch <= '0';
+        end if;
+      end if;
+    end if;
+  end process;
+  
+end vhdl;  

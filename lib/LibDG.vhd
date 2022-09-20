@@ -288,6 +288,23 @@ component skid_buffer is
     data_out_valid : out std_logic); 
 end component skid_buffer;
 
+
+component handshake_sync is
+  generic (
+    WIDTH : natural
+  );
+  port (
+    src_clk : in std_logic;
+    src_params : in std_logic_vector(WIDTH-1 downto 0);
+    src_aresetn : in std_logic;
+
+    dest_clk : in std_logic;
+    dest_params : out std_logic_vector(WIDTH-1 downto 0);
+    dest_aresetn : in std_logic
+  );
+end component handshake_sync;
+
+
 End LibDG;
 
 

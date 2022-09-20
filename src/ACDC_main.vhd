@@ -88,6 +88,7 @@ architecture vhdl of	ACDC_main is
 	signal 	led_trig		   : std_logic_vector(8 downto 0);
 	signal 	led_mono		   : std_logic_vector(8 downto 0);
     signal  reset_acc_z        : std_logic;
+    signal  reset_sync         : std_logic;
 	
 	signal  rxparams           : RX_Param_jcpll_type;
     signal  rxparams_syncAcc   : RX_Param_jcpll_type;
@@ -197,20 +198,25 @@ begin
 end process;
 
 -- reset synchronizers
-RESET_SYNC : process(clock.sys)
-  variable reset_sync_1 : std_logic;
-  variable reset_sync_2 : std_logic;
-  variable reset_sync_3 : std_logic;
-begin
-  reset.global <= reset_sync_3 or not clock.altpllLock;
 
-  if rising_edge(clock.sys) then
-    reset_sync_3 := reset_sync_2;
-    reset_sync_2 := reset_sync_1;
-    reset_sync_1 := reset.acc;
+RESET_SYNC_block : sync_Bits_Altera
+  generic map(
+    BITS         => 1,                       -- number of bit to be synchronized
+    INIT         => x"00000000",             -- initialization bits
+    SYNC_DEPTH   => 2                       -- generate SYNC_DEPTH many stages, at least 2
+  )
+  port map(
+    Clock         => clock.sys,
+    Input(0)      => reset.acc,
+    Output(0)     => reset_sync
+  );
+resst_global_gen : process(clock.sys)
+begin
+  if(rising_edge(clock.sys)) then
+    reset.global <= reset_sync or not clock.altpllLock;
   end if;
 end process;
-
+  
 PreRESET_SYNC_25MHz : process(clock.acc40)
 begin
   if rising_edge(clock.acc40) then
@@ -433,12 +439,14 @@ dataHandler_map: dataHandler port map (
 		serialRX		   => serialRx,
         rxparams           => rxparams_syncAcc,
 		IDrequest		   => rxparams_acc.IDrequest,
+        IDpage             => rxparams_acc.IDpage,
 
         --jc pll clock parameters, these need CDC!!!
         trigInfo		   => trigInfo,
 		Wlkn_fdbk_current  => Wlkn_fdbk_current,
 		pro_vdd			   => pro_vdd,
 		vcdl_count		   => vcdl_count,
+        FLL_lock           => FLL_lock,
         eventCount		   => eventCount,
 		selfTrig_rateCount => selfTrig_rateCount,
         trig_count_all     => trig_count_all,
