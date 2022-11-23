@@ -91,7 +91,7 @@ component dataBuffer is
 		start					:  in		std_logic;
 		fifoRead         		:	in	    std_logic; 
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
-        fifoOcc             : out std_logic_vector(12 downto 0);
+        fifoOcc             : out std_logic_vector(15 downto 0);
 		done					:	out	std_logic; 	-- the psec data has been read out and stored in ram	
         backpressure            : out std_logic;
         backpressure_in         : in  std_logic);
@@ -102,7 +102,7 @@ end component;
 -- data handler
 component dataHandler is
 	port (
-      reset				 : 	in   	std_logic;
+      reset				 : 	in   	reset_type;
       clock				 : 	in		clock_type;
       serialRx			 :	in		serialRx_type;
       trigInfo			 :  in 	trigInfo_type;
@@ -119,12 +119,12 @@ component dataHandler is
       txAck			     : 	in 	std_logic; 
       selfTrig_rateCount :  in 	selfTrig_rateCount_array;
       txBusy			 :	out	std_logic;			-- a flag used for diagnostics and frame time measurement
-      fifoOcc            :  in  Array13;
+      fifoOcc            :  in  Array16;
       trig_count_all     :  in  std_logic_vector(15 downto 0);
       trig_count	     :  in  std_logic_vector(15 downto 0);
       backpressure       :  in  std_logic;
-      wr_timeOcc         :  in  std_logic_vector(3 downto 0);
-      sys_timeOcc        :  in  std_logic_vector(3 downto 0)
+      wr_timeOcc         :  in  std_logic_vector(5 downto 0);
+      sys_timeOcc        :  in  std_logic_vector(5 downto 0)
 
 );
 end component;
@@ -223,7 +223,7 @@ component PSEC4_driver is
 		DLL_monitor			: out std_logic;
 		fifoRead         		:	in	    std_logic; 
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
-        fifoOcc             : out std_logic_vector(12 downto 0);
+        fifoOcc             : out std_logic_vector(15 downto 0);
         readoutDone         : out std_logic;
 		FLL_lock				: out std_logic;
         backpressure            : out std_logic;
@@ -231,6 +231,17 @@ component PSEC4_driver is
 );
 	
 end component;
+
+
+component gearbox_12to16 is
+  port (
+    clk            : in  std_logic;
+    reset          : in  std_logic;
+    data_in        : in  std_logic_vector(11 downto 0);
+    data_in_valid  : in  std_logic;
+    data_out       : out std_logic_vector(15 downto 0);
+    data_out_valid : out std_logic);
+end component gearbox_12to16;
 
 
 component selfTrigger is
@@ -278,8 +289,8 @@ component trigger is
 			trig_count_all   : out std_logic_vector(15 downto 0);
             trig_count	     : out std_logic_vector(15 downto 0);
             trig_count_reset : in  std_logic;
-            wr_timeOcc       : out std_logic_vector(3 downto 0);
-            sys_timeOcc      : out std_logic_vector(3 downto 0));
+            wr_timeOcc       : out std_logic_vector(5 downto 0);
+            sys_timeOcc      : out std_logic_vector(5 downto 0));
 	end component;
 
 
@@ -367,9 +378,9 @@ component txFifo_hs is
     wrreq   : IN  STD_LOGIC;
     q       : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
     rdempty : OUT STD_LOGIC;
-    rdusedw : OUT STD_LOGIC_VECTOR (12 DOWNTO 0);
+    rdusedw : OUT STD_LOGIC_VECTOR (14 DOWNTO 0);
     wrfull  : OUT STD_LOGIC;
-    wrusedw : OUT STD_LOGIC_VECTOR (12 DOWNTO 0)); 
+    wrusedw : OUT STD_LOGIC_VECTOR (14 DOWNTO 0)); 
 end component txFifo_hs;
 
 
@@ -380,7 +391,7 @@ component data_readout_control is
     backpressure     : in  std_logic;
     fifoRead         : out std_logic_vector(N-1 downto 0);
     fifoDataOut      : in  array16;
-    fifoOcc          : in  array13;
+    fifoOcc          : in  array16;
     sys_timestamp	 : in  std_logic_vector(63 downto 0);
     sys_ts_read      : out std_logic;
     sys_ts_valid     : in  std_logic;
@@ -403,7 +414,7 @@ component timeFifo is
     wrreq   : IN  STD_LOGIC;
     q       : OUT STD_LOGIC_VECTOR (63 DOWNTO 0);
     rdempty : OUT STD_LOGIC;
-    rdusedw	: OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
+    rdusedw	: OUT STD_LOGIC_VECTOR (5 DOWNTO 0);
     wrfull  : OUT STD_LOGIC);
 end component timeFifo;
 

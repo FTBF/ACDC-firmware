@@ -82,6 +82,16 @@ begin  -- architecture vhdl
 --        outClock   => clk.serial25,
 --        din_valid  => trigger,
 --        dout_valid => trigger_z);
+
+    backpressure_sync: sync_Bits_Altera
+      generic map (
+        BITS       => 1,
+        INIT       => x"00000000",
+        SYNC_DEPTH => 2)
+      port map (
+        Clock     => clk.serial25,
+        Input(0)  => backpressure_out,
+        Output(0) => backpressure_out_z);
     
     output_mux : process(clk.serial25)
     begin
@@ -89,7 +99,6 @@ begin  -- architecture vhdl
         trigger_z <= trigger;
         trigger_z2 <= trigger_z;
 
-        backpressure_out_z <= backpressure_out;
         backpressure_out_z2 <= backpressure_out_z;
         
         outputMode_z <= outputMode;

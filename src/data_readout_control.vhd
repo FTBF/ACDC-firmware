@@ -29,7 +29,7 @@ entity data_readout_control is
     -- main data FIFOs from PSEC4s
     fifoRead      : out std_logic_vector(N-1 downto 0);
     fifoDataOut   : in  array16;
-    fifoOcc       : in  array13;
+    fifoOcc       : in  array16;
 
     -- 320 MHz system clock counter value
     sys_timestamp	 : in  std_logic_vector(63 downto 0);
@@ -50,7 +50,7 @@ entity data_readout_control is
 end data_readout_control;
     
 architecture vhdl of data_readout_control is
-  constant WORDS_PER_EVENT : natural := 256*6;
+  constant WORDS_PER_EVENT : natural := 1152; --256 caps * 6 chan * 12/16 gearbox ratio;
   constant WORDS_PER_HEADER : natural := 16;
   
   signal FIFO_readoutReady : std_logic_vector(N-1 downto 0);

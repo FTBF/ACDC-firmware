@@ -96,7 +96,7 @@ architecture vhdl of	ACDC_main is
 
     signal fifoRead            : std_logic_vector(N-1 downto 0);
     signal fifoDataOut         : array16;
-    signal fifoOcc             : array13;
+    signal fifoOcc             : array16;
     signal dataToSend          : hs_input_array;
     signal dataToSend_valid    : std_logic_vector(1 downto 0);
     signal dataToSend_kout     : std_logic_vector(1 downto 0);
@@ -125,8 +125,8 @@ architecture vhdl of	ACDC_main is
     signal pps_z               : std_logic_vector(1 downto 0);
     signal reset_wr_z          : std_logic;
 
-    signal wr_timeOcc          : std_logic_vector(3 downto 0);
-    signal sys_timeOcc         : std_logic_vector(3 downto 0);
+    signal wr_timeOcc          : std_logic_vector(5 downto 0);
+    signal sys_timeOcc         : std_logic_vector(5 downto 0);
 
 
     signal trig_out_debug   : std_logic;
@@ -426,7 +426,7 @@ reset.request <= rxparams_acc.reset_request;
 -- transmits info over the low speed serial
 dataHandler_map: dataHandler port map (
         -- clock and reset signals
-		reset			   => reset.acc,
+		reset			   => reset,
 		clock			   => clock,
 
         --data stream and control signals
@@ -660,17 +660,15 @@ SYS_TIME_GEN: fastCounter64 port map (
 
 		
 -- synchronize reset to x8 clock
-SYS_TIME_RESET: process(clock.x8)
-  variable reset_z1 : std_logic;
-  variable reset_z2 : std_logic;
-begin
-  if rising_edge(clock.x8) then
-    reset_z1 := reset.global or rxparams.trigSetup.eventAndTime_reset;
-    reset_z2 := reset_z1;
-    systemTime_reset <= reset_z2;
-  end if;
-end process;
-   
+SYS_TIME_RESET: sync_Bits_Altera
+  generic map (
+    BITS       => 1,
+    INIT       => x"00000000",
+    SYNC_DEPTH => 2)
+  port map (
+    Clock     => clock.x8,
+    Input(0)  => reset.global or rxparams.trigSetup.eventAndTime_reset,
+    Output(0) => systemTime_reset);   
 
 -- white rabbit synchronized counters for absolute time stamp
 -- wrTime_fast : 250 MHz counter reset to 0 by PPS

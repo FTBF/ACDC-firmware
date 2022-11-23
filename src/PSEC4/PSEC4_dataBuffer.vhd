@@ -32,7 +32,7 @@ entity dataBuffer is
 		start					:  in		std_logic;
 		fifoRead         		:	in	    std_logic; 
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
-        fifoOcc             : out std_logic_vector(12 downto 0);
+        fifoOcc             : out std_logic_vector(15 downto 0);
 		done					:	out	std_logic;
         backpressure            : out std_logic;
         backpressure_in         : in  std_logic);	-- the psec data has been read out and stored in fifo
@@ -46,12 +46,15 @@ signal	writeEnable: std_logic;
 signal	writeData: std_logic_vector(15 downto 0);
 signal	blockSel: natural;
 signal	sample_wrAddr: unsigned(7 downto 0);
-signal  fifoOcc_rd : std_logic_vector(12 downto 0);
+signal  fifoOcc_rd : std_logic_vector(14 downto 0);
+signal  gearbox_reset : std_logic;
+signal  writeEnable_z : Std_logic;
 
 begin
 		
-writeData <= "000" & PSEC4_in.overflow & PSEC4_in.data;
+--writeData <= "000" & PSEC4_in.overflow & PSEC4_in.data;
 
+fifoOcc(15) <= '0';
 txFifo: txFifo_hs
   port map (
     aclr    => reset.serial,
@@ -59,15 +62,24 @@ txFifo: txFifo_hs
     rdclk   => clock.serial25,
     rdreq   => fifoRead,
     wrclk   => clock.sys,
-    wrreq   => writeEnable,
+    wrreq   => writeEnable_z,
     q       => fifoDataOut,
     rdempty => open,
-    rdusedw => fifoOcc,
+    rdusedw => fifoOcc(14 downto 0),
     wrfull  => open,
     wrusedw => fifoOcc_rd);
 
--- make sure we never overfill the FIFO (which can hold 5 events)
-backpressure <= '1' when unsigned(fifoOcc_rd) > (256*6*4 + 5) else '0';
+gearbox_12to16_1: gearbox_12to16
+  port map (
+    clk            => clock.sys,
+    reset          => gearbox_reset,
+    data_in        => PSEC4_in.data,
+    data_in_valid  => writeEnable,
+    data_out       => writeData,
+    data_out_valid => writeEnable_z);
+
+-- make sure we never overfill the FIFO (which can hold 28 events)
+backpressure <= '1' when unsigned(fifoOcc_rd) > (31104 + 5) else '0';
 	
 -- write address
 --writeAddress <= "000" & channel_wrAddr_slv & sample_wrAddr_slv;	-- 3 bit channel number + 8 bit sample number
@@ -96,12 +108,11 @@ variable i: natural;		-- sample number
 begin
 	
 	if (rising_edge(clock.sys)) then
-			
+      gearbox_reset <= '0';
+      
       if (reset.global = '1')  then
         state := IDLE;
       else
-        
-
 		
 		case state is
 				
@@ -157,6 +168,9 @@ begin
 			
 				readClock <= '1'; 	
 				writeEnable <= '1';
+                if wrCount = 0 then
+                  gearbox_reset <= '1';
+                end if;
 				state := WR;
 				
 				

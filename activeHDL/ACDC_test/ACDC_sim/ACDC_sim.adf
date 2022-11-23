@@ -20,7 +20,7 @@ LANGUAGE=VHDL
 REFRESH_FLOW=1
 FLOWTOOLS=NONE
 FAMILY=Intel CycloneIVGX
-fileopenfolder=C:\Users\pastika\TOF\firmware\ACDC\ACDC-firmware\src\QIPcomponents
+fileopenfolder=C:\Users\pastika\TOF\firmware\ACDC\ACDC-firmware\lib
 
 [Folders]
 Name0=Event Lists
@@ -71,7 +71,7 @@ IncrementalCompilation=0
 AdditionalOptions=
 
 [HierarchyViewer]
-HierarchyInformation=acdc_test_tb|vhdl|0
+HierarchyInformation=acdc_test_tb|vhdl|0 
 ShowHide=ShowTopLevel
 Selected=
 
@@ -136,6 +136,8 @@ Synchronize=1
 /..\..\..\..\src\QIPcomponents\txFifo_hs.vhd=-1
 /..\..\..\..\src\data_readout_control.vhd=-1
 /..\..\..\..\src\QIPcomponents\pll_wr.vhd=-1
+/..\..\..\..\src\PSEC4\gearbox_12to16.vhd=-1
+/..\..\..\..\lib\manchester_decoder.vhd=-1
 
 [Files.Data]
 .\..\..\..\src\QIPcomponents\txFifo.vhd=VHDL Source Code
@@ -195,4 +197,6 @@ Synchronize=1
 .\..\..\..\src\QIPcomponents\txFifo_hs.vhd=VHDL Source Code
 .\..\..\..\src\data_readout_control.vhd=VHDL Source Code
 .\..\..\..\src\QIPcomponents\pll_wr.vhd=VHDL Source Code
+.\..\..\..\src\PSEC4\gearbox_12to16.vhd=VHDL Source Code
+.\..\..\..\lib\manchester_decoder.vhd=VHDL Source Code
 

@@ -80,6 +80,7 @@ architecture vhdl of ACDC_test_tb is
   signal cmd_in                 : std_logic_vector(31 downto 0);
   signal cmd_ready                 : std_logic;		
   signal tx_clk                 : std_logic;
+  signal selfTrigger            : std_logic_vector(5 downto 0);
   
   component synchronousTx_8b10b_ACC IS 
 	PORT
@@ -220,38 +221,68 @@ tx_comms_map : synchronousTx_8b10b_ACC port map (
 	 
   end process;
   
+  fakeData : for i in 0 to 4 generate
+	PSEC4_in(i).trig <= selfTrigger;
+	PSEC4_in(i).overflow <= '0';
+	  
+  	PSEC4_process : process(PSEC4_out(i).readClock, reset)
+	  variable partialNumber : std_logic_vector(11 downto 0);
+  	begin
+      if reset = '1' then
+        PSEC4_in(i).data <= X"fff";
+        --partialNumber := "0000"&X"00";
+      else 
+        if rising_edge(PSEC4_out(i).readClock) then
+          if PSEC4_out(i).TokDecode /= "101" and PSEC4_out(i).TokIn = "00" then
+            --partialNumber := std_logic_vector((unsigned(PSEC4_in(i).data) + 1));
+            PSEC4_in(i).data <= std_logic_vector((unsigned(PSEC4_in(i).data) + 1));
+          end if;
+        end if;
+      end if;
+    end process;
+  end generate;
+
+  
   -- waveform generation
   WaveGen_Proc: process
   begin
     -- insert signal assignments here
     
-	reset <= '1';
+	reset <= '0';
 	cmd_in <= X"00000000";
 	cmd_ready <= '0';
 	LVDS_in(1) <= '0';
 	LVDS_in(2) <= '0';
+	selfTrigger <= "000000";
 	
 	for i in 0 to 4 loop
-		PSEC4_in(i).data <= X"000";
-		PSEC4_in(i).overflow <= '0';
-		PSEC4_in(i).ringOsc_mon <= '1';
-		PSEC4_in(i).DLL_clock <= '0';
-		PSEC4_in(i).trig <= "000000";
+		--PSEC4_in(i).data <= X"000";
+		--PSEC4_in(i).overflow <= '0';
+		--PSEC4_in(i).ringOsc_mon <= '1';
+		--PSEC4_in(i).DLL_clock <= '0';
+		--PSEC4_in(i).trig <= "000000";
 	end loop;
 		
-	
+	wait for 20 us;
+	reset <= '1';
 	wait for 20 us;	 
 	reset <= '0';
 	wait for 20 us;	
 	
+	-- set trigger mode 1 "software trigger mode"
+	sendword(X"FFF60003", cmd_in, cmd_ready);
+	wait for 1 us;
+	sendword(X"FFB00003", cmd_in, cmd_ready);
+	wait for 1 us;
+	sendword(X"FFB1001f", cmd_in, cmd_ready);  
+	
 	wait for 200 us;
 	
-	--PSEC4_in(0).trig <= "001000";
+	--PSEC4_in(0).trig <= "001000";	
+	selfTrigger <= "000100";
 	
-	-- set trigger mode 1 "software trigger mode"
-	sendword(X"FFB00001", cmd_in, cmd_ready);  
 	wait for 10 us;
-	-- set transfer enable = true
+    -- set transfer enable = true
 	sendword(X"FFB50000", cmd_in, cmd_ready);
 						   
 --	sendword(X"FFA60001", cmd_in, cmd_ready);

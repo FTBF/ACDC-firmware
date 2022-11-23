@@ -50,8 +50,8 @@ entity trigger is
 			trig_count_all   : out std_logic_vector(15 downto 0);
             trig_count	     : out std_logic_vector(15 downto 0);
             trig_count_reset : in  std_logic;
-            wr_timeOcc       : out std_logic_vector(3 downto 0);
-            sys_timeOcc      : out std_logic_vector(3 downto 0)
+            wr_timeOcc       : out std_logic_vector(5 downto 0);
+            sys_timeOcc      : out std_logic_vector(5 downto 0)
 			);
 end trigger;
 

@@ -44,7 +44,7 @@ entity PSEC4_driver is
 		DLL_monitor			: out std_logic;
 		fifoRead         		:	in	    std_logic; 
 		fifoDataOut			:	out	std_logic_vector(15 downto 0);
-        fifoOcc             : out std_logic_vector(12 downto 0);
+        fifoOcc             : out std_logic_vector(15 downto 0);
         readoutDone         : out std_logic;
 		FLL_lock				: out	std_logic;
         backpressure            : out std_logic;

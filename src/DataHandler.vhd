@@ -20,12 +20,12 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL; 
 use work.defs.all;
-
+use work.LibDG.all;
 
 
 entity dataHandler is
   port (
-    reset			   : 	in   	std_logic;
+    reset			   : 	in   	reset_type;
     clock			   : 	in		clock_type;
     serialRx		   :	in		serialRx_type;
     trigInfo		   :    in 	    trigInfo_type;
@@ -42,12 +42,12 @@ entity dataHandler is
     txAck              : 	in 	    std_logic; 
     selfTrig_rateCount :    in 	    selfTrig_rateCount_array;
     txBusy			   :	out	    std_logic;			-- a flag used for diagnostics and frame time measurement
-    fifoOcc            :    in      Array13;
+    fifoOcc            :    in      Array16;
     trig_count_all     :    in      std_logic_vector(15 downto 0);
     trig_count	       :    in      std_logic_vector(15 downto 0);
     backpressure       :    in      std_logic;
-    wr_timeOcc         :    in      std_logic_vector(3 downto 0);
-    sys_timeOcc        :    in      std_logic_vector(3 downto 0)
+    wr_timeOcc         :    in      std_logic_vector(5 downto 0);
+    sys_timeOcc        :    in      std_logic_vector(5 downto 0)
     );
 end dataHandler;
 
@@ -87,33 +87,76 @@ architecture vhdl of dataHandler is
   signal IDframeCount: unsigned(31 downto 0);
   signal txAck_z: std_logic;	
 
+  signal fifoOcc_z            :  Array16;
+  signal wr_timeOcc_z         :  std_logic_vector(5 downto 0);
+  signal sys_timeOcc_z        :  std_logic_vector(5 downto 0);
+
 begin	
 	
-   
+
+-- CDC logic
+
+  --loop over PSEC
+  psec_sync_loop : for i in 0 to N-1 generate
+    handshake_sync_fifoOcc: handshake_sync
+      generic map (
+        WIDTH => 16)
+      port map (
+        src_clk      => clock.serial25,
+        src_params   => fifoOcc(i),
+        src_aresetn  => reset.serial,
+        dest_clk     => clock.acc40,
+        dest_params  => fifoOcc_z(i),
+        dest_aresetn => reset.acc);
+  end generate;
+
+  handshake_sync_wr_timeOcc: handshake_sync
+    generic map (
+      WIDTH => 6)
+    port map (
+      src_clk      => clock.serial25,
+      src_params   => wr_timeOcc,
+      src_aresetn  => reset.serial,
+      dest_clk     => clock.acc40,
+      dest_params  => wr_timeOcc_z,
+      dest_aresetn => reset.acc);
+
+  handshake_sync_sys_timeOcc: handshake_sync
+    generic map (
+      WIDTH => 6)
+    port map (
+      src_clk      => clock.serial25,
+      src_params   => sys_timeOcc,
+      src_aresetn  => reset.serial,
+      dest_clk     => clock.acc40,
+      dest_params  => sys_timeOcc_z,
+      dest_aresetn => reset.acc);
+
+  
 DATA_HANDLER: process(clock.acc40)
-variable state: state_type:= WAIT_FOR_REQUEST;
-variable i: natural range 0 to 65535;  -- index of the current data word
-variable byte_count: natural range 0 to 65535;  
-variable txWord: std_logic_vector(15 downto 0);
-variable dev: natural range 0 to 7;
-variable dev_ch: natural range 0 to 7;
+    variable state: state_type:= WAIT_FOR_REQUEST;
+    variable i: natural range 0 to 65535;  -- index of the current data word
+    variable byte_count: natural range 0 to 65535;  
+    variable txWord: std_logic_vector(15 downto 0);
+    variable dev: natural range 0 to 7;
+    variable dev_ch: natural range 0 to 7;
 
 -- flags to show the progress of the transmission
-variable SOF_done: boolean;				-- start of frame
-variable Psec4sDone: natural range 0 to 7;
-variable preambleDone: boolean;
-variable psecDataDone: boolean;
-variable trigDone: boolean;
-variable frameDone: boolean;
-variable frameID_done: boolean;
-variable frame_type: natural;
-variable tx_ack_flag : std_logic:='0';
+    variable SOF_done: boolean;				-- start of frame
+    variable Psec4sDone: natural range 0 to 7;
+    variable preambleDone: boolean;
+    variable psecDataDone: boolean;
+    variable trigDone: boolean;
+    variable frameDone: boolean;
+    variable frameID_done: boolean;
+    variable frame_type: natural;
+    variable tx_ack_flag : std_logic:='0';
 
 
 begin
 	if (rising_edge(clock.acc40)) then
 		
-		if (reset = '1') then
+		if (reset.acc = '1') then
 			
 			state := WAIT_FOR_REQUEST;
 			txReq <= '0';
@@ -256,13 +299,13 @@ begin
     IDframe_data(18) <= std_logic_vector(IDframeCount(15 downto 0));
     IDframe_data(19) <= trig_count_all;
     IDframe_data(20) <= trig_count;
-    IDframe_data(21) <= "000" & fifoOcc(0);
-    IDframe_data(22) <= "000" & fifoOcc(1);
-    IDframe_data(23) <= "000" & fifoOcc(2);
-    IDframe_data(24) <= "000" & fifoOcc(3);
-    IDframe_data(25) <= "000" & fifoOcc(4);
-    IDframe_data(26) <= x"000" & wr_timeOcc;
-    IDframe_data(27) <= x"000" & sys_timeOcc;
+    IDframe_data(21) <= fifoOcc_z(0);
+    IDframe_data(22) <= fifoOcc_z(1);
+    IDframe_data(23) <= fifoOcc_z(2);
+    IDframe_data(24) <= fifoOcc_z(3);
+    IDframe_data(25) <= fifoOcc_z(4);
+    IDframe_data(26) <= x"00" & "00" & wr_timeOcc_z;
+    IDframe_data(27) <= x"00" & "00" & sys_timeOcc_z;
     IDframe_data(28) <= std_logic_vector(serialNumber(31 downto 16));
     IDframe_data(29) <= std_logic_vector(serialNumber(15 downto 0));
     IDframe_data(30) <= x"BBBB";
