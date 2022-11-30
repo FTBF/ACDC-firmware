@@ -45,7 +45,6 @@ architecture vhdl of dataBuffer is
 signal	writeEnable: std_logic;
 signal	writeData: std_logic_vector(15 downto 0);
 signal	blockSel: natural;
-signal	sample_wrAddr: unsigned(7 downto 0);
 signal  fifoOcc_rd : std_logic_vector(14 downto 0);
 signal  gearbox_reset : std_logic;
 signal  writeEnable_z : Std_logic;
@@ -81,10 +80,6 @@ gearbox_12to16_1: gearbox_12to16
 -- make sure we never overfill the FIFO (which can hold 28 events)
 backpressure <= '1' when unsigned(fifoOcc_rd) > (31104 + 5) else '0';
 	
--- write address
---writeAddress <= "000" & channel_wrAddr_slv & sample_wrAddr_slv;	-- 3 bit channel number + 8 bit sample number
-
-
 
 -- psec4 control signals
 blockSelect <= std_logic_vector(to_unsigned(blockSel,3));	
@@ -133,7 +128,6 @@ begin
 
 			when RD_SETUP =>
 					
-					sample_wrAddr <=  X"00";
 					channel <= 1;
 					blockSel   	<= 1;
 					state := CLKA; 
@@ -178,7 +172,6 @@ begin
 				
 					readClock <= '0';
 					writeEnable <= '0'; 
-					sample_wrAddr <= sample_wrAddr + 1;
 					wrCount := wrCount + 1;
 					if (wrCount < 64) then
 						state := CLKD;

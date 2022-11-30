@@ -30,7 +30,7 @@ begin
   begin
     if rising_edge(clk) then
       if data_in_valid = '1' then
-        gearbox_sr <= data_in & gearbox_sr(23 downto 12);
+        gearbox_sr <= gearbox_sr(11 downto 0) & data_in;
       else
         gearbox_sr <= gearbox_sr;
       end if;
@@ -48,9 +48,9 @@ begin
   output_mux : process(all)
   begin
     case counter is
-      when "00"    => data_out <= gearbox_sr(15 downto 0);
+      when "00"    => data_out <= gearbox_sr(23 downto 8);
       when "01"    => data_out <= gearbox_sr(19 downto 4);
-      when "10"    => data_out <= gearbox_sr(23 downto 8);
+      when "10"    => data_out <= gearbox_sr(15 downto 0);
       when others  => data_out <= gearbox_sr(15 downto 0);
     end case;
 
