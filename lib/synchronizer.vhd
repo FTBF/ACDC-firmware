@@ -207,8 +207,10 @@ entity param_handshake_sync is
     src_aresetn : in std_logic;
 
     dest_clk : in std_logic;
+    dest_clk_2   : in  std_logic;
     dest_params : out RX_Param_jcpll_type;
-    dest_aresetn : in std_logic
+    dest_aresetn : in std_logic;
+    dest_aresetn_2 : in std_logic
   );
 end entity param_handshake_sync;
 
@@ -224,6 +226,18 @@ architecture vhdl of param_handshake_sync is
       dest_aresetn : in  std_logic);
   end component pulseSync2;
 
+  component handshake_sync is
+    generic (
+      WIDTH : natural); 
+    port (
+      src_clk      : in  std_logic;
+      src_params   : in  std_logic_vector(WIDTH-1 downto 0);
+      src_aresetn  : in  std_logic;
+      dest_clk     : in  std_logic;
+      dest_params  : out std_logic_vector(WIDTH-1 downto 0);
+      dest_aresetn : in  std_logic); 
+  end component handshake_sync;
+
   signal src_params_latch : RX_Param_jcpll_type;
   signal src_latch        : std_logic;
   signal src_latch_sync   : std_logic;
@@ -232,6 +246,17 @@ architecture vhdl of param_handshake_sync is
 
 begin
 
+  handshake_outputmode: handshake_sync
+  generic map (
+    WIDTH => 2)
+  port map (
+    src_clk      => src_clk,
+    src_params   => src_params.outputMode,
+    src_aresetn  => src_aresetn,
+    dest_clk     => dest_clk_2,
+    dest_params  => dest_params.outputMode,
+    dest_aresetn => dest_aresetn_2);
+  
   src2dest_sync : pulseSync2
   port map (
     src_clk      => src_clk,

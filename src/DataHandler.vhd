@@ -43,8 +43,8 @@ entity dataHandler is
     selfTrig_rateCount :    in 	    selfTrig_rateCount_array;
     txBusy			   :	out	    std_logic;			-- a flag used for diagnostics and frame time measurement
     fifoOcc            :    in      Array16;
-    trig_count_all     :    in      std_logic_vector(15 downto 0);
-    trig_count	       :    in      std_logic_vector(15 downto 0);
+    trig_count_all     :    in      std_logic_vector(31 downto 0);
+    trig_count	       :    in      std_logic_vector(31 downto 0);
     backpressure       :    in      std_logic;
     wr_timeOcc         :    in      std_logic_vector(5 downto 0);
     sys_timeOcc        :    in      std_logic_vector(5 downto 0)
@@ -289,16 +289,16 @@ begin
     IDframe_data(8) <= x"0000";
     IDframe_data(9) <= info(0,1);	-- wlkn feedback current (channel 0)		
     IDframe_data(10) <= info(0,2);	-- wlkn feedback target (channel 0)	
-    IDframe_data(11) <= (others => '0');
-    IDframe_data(12) <= (others => '0');
-    IDframe_data(13) <= (others => '0');
-    IDframe_data(14) <= (others => '0');
+    IDframe_data(11) <= trig_count_all(31 downto 16);
+    IDframe_data(12) <= trig_count_all(15 downto 0);
+    IDframe_data(13) <= trig_count(31 downto 16);
+    IDframe_data(14) <= trig_count(15 downto 0);
     IDframe_data(15) <= std_logic_vector(eventCount(31 downto 16));
     IDframe_data(16) <= std_logic_vector(eventCount(15 downto 0));
     IDframe_data(17) <= std_logic_vector(IDframeCount(31 downto 16));
     IDframe_data(18) <= std_logic_vector(IDframeCount(15 downto 0));
-    IDframe_data(19) <= trig_count_all;
-    IDframe_data(20) <= trig_count;
+    IDframe_data(19) <= (others => '0');
+    IDframe_data(20) <= (others => '0');
     IDframe_data(21) <= fifoOcc_z(0);
     IDframe_data(22) <= fifoOcc_z(1);
     IDframe_data(23) <= fifoOcc_z(2);

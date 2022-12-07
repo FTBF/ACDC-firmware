@@ -17,13 +17,15 @@ use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL; 
 use work.defs.all;
 use work.components.all;
-
+use work.LibDG.all;
 
 entity commandHandler is
 	port (
       reset		     : in    std_logic;
+      reset_serial   : in    std_logic;
       clock		     : in	   std_logic;
-      clock_out	     : in	   std_logic;        
+      clock_out	     : in	   std_logic;
+      clock_serial   : in	   std_logic;        
       din		     : in    std_logic_vector(31 downto 0);
       din_valid	     : in    std_logic;
       params         : out   RX_Param_jcpll_type;
@@ -55,11 +57,13 @@ param_handshake_sync_1: entity work.param_handshake_sync
     src_params   => params_z,
     src_aresetn  => resetn,
     dest_clk     => clock_out,
+    dest_clk_2   => clock_Serial,
     dest_params  => params,
-    dest_aresetn => resetn
+    dest_aresetn => resetn,
+    dest_aresetn_2 => not reset_serial
     );
 
-   
+
 COMMAND_HANDLER:	process(clock)
 variable psecSel: 		natural range 0 to N;
 variable cmdType: 		std_logic_vector(3 downto 0);
@@ -107,7 +111,7 @@ begin
 				params_z.testMode.trig_noTransfer <= '0';
                 params_acc.PLL_ConfigRequest <= '0';		 
                 params_acc.PLL_resetRequest <= '0';	 
-                params_acc.outputMode <= "00";
+                params_z.outputMode <= "00";
                 params_acc.IDpage <= "0000";
                 
 				-- trig
@@ -297,7 +301,7 @@ begin
                             when x"3" => params_acc.PLL_ConfigReg(15 downto 0) <= cmdLongVal;
                             when x"4" => params_acc.PLL_ConfigReg(31 downto 16) <= cmdLongVal;
                             when x"5" => params_acc.PLL_ConfigRequest <= '1';
-                            when x"6" => params_acc.outputMode <= cmdLongVal(1 downto 0);           
+                            when x"6" => params_z.outputMode <= cmdLongVal(1 downto 0);           
 
 							when x"F" => params_acc.reset_request <= '1';	-- global reset 
 							when others => null;

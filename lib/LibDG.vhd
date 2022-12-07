@@ -305,6 +305,16 @@ component handshake_sync is
 end component handshake_sync;
 
 
+component enc_8b10b is
+  port (
+    reset   : in  std_logic;
+    clk     : in  std_logic;
+    ena     : in  std_logic;
+    KI      : in  std_logic;
+    datain  : in  std_logic_vector(7 downto 0);
+    dataout : out std_logic_vector(9 downto 0));
+end component enc_8b10b;
+
 End LibDG;
 
 

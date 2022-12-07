@@ -32,9 +32,9 @@ end record;
 --------------------------------
 constant firmwareVersion: firmwareVersion_type:= (
   
-  number =>     x"0409", 
+  number =>     x"0410", 
   year =>       x"2022",    
-  MMDD =>       x"1128"         -- month, date
+  MMDD =>       x"1207"         -- month, date
   
 );
 --
@@ -417,6 +417,7 @@ type RX_Param_jcpll_type is record
   ramReadRequest          : std_logic;
   RO_target               : natArray;   
   testMode                : testMode_type;
+  outputMode              : std_logic_vector(1 downto 0);
 end record;
 
 type RX_Param_acc_type is record
@@ -428,7 +429,6 @@ type RX_Param_acc_type is record
   PLL_resetRequest        : std_logic;   
   PLL_ConfigRequest       : std_logic;   
   PLL_ConfigReg           : std_logic_vector(31 downto 0);   
-  outputMode              : std_logic_vector(1 downto 0);
 end record;
 
 	

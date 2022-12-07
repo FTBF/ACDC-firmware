@@ -51,9 +51,11 @@ end component ClockGenerator;
 -- command handler	
 component commandHandler is
 	port (
-		reset	       : in    std_logic;
+        reset	       : in    std_logic;
+        reset_serial   : in    std_logic;
 		clock	       : in	   std_logic;
-        clock_out      : in	   std_logic;        
+        clock_out      : in	   std_logic;
+        clock_serial   : in	   std_logic;        
         din		       : in    std_logic_vector(31 downto 0);
         din_valid      : in    std_logic;
         params         : out   RX_Param_jcpll_type;
@@ -120,8 +122,8 @@ component dataHandler is
       selfTrig_rateCount :  in 	selfTrig_rateCount_array;
       txBusy			 :	out	std_logic;			-- a flag used for diagnostics and frame time measurement
       fifoOcc            :  in  Array16;
-      trig_count_all     :  in  std_logic_vector(15 downto 0);
-      trig_count	     :  in  std_logic_vector(15 downto 0);
+      trig_count_all     :  in  std_logic_vector(31 downto 0);
+      trig_count	     :  in  std_logic_vector(31 downto 0);
       backpressure       :  in  std_logic;
       wr_timeOcc         :  in  std_logic_vector(5 downto 0);
       sys_timeOcc        :  in  std_logic_vector(5 downto 0)
@@ -286,8 +288,8 @@ component trigger is
 			trig_clear				: buffer std_logic;
 			trig_out					: buffer std_logic;
             trig_out_debug   : out std_logic;
-			trig_count_all   : out std_logic_vector(15 downto 0);
-            trig_count	     : out std_logic_vector(15 downto 0);
+			trig_count_all   : out std_logic_vector(31 downto 0);
+            trig_count	     : out std_logic_vector(31 downto 0);
             trig_count_reset : in  std_logic;
             wr_timeOcc       : out std_logic_vector(5 downto 0);
             sys_timeOcc      : out std_logic_vector(5 downto 0));

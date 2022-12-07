@@ -107,13 +107,13 @@ begin  -- architecture vhdl
             output_z <= prbs_pattern(7 downto 0);
             enc_kin <= '0';
           when "11"   =>
-            if    backpressure_out_z2 = '0' and backpressure_out_z = '1' then
-              output_z <= X"3C";
-              enc_kin <= '1';
-            elsif backpressure_out_z2 = '1' and backpressure_out_z = '0' then
-              output_z <= X"5C";
-              enc_kin <= '1';
-            elsif trigger_z2 = '0' and trigger_Z = '1' then 
+--            if    backpressure_out_z2 = '0' and backpressure_out_z = '1' then
+--              output_z <= X"3C";
+--              enc_kin <= '1';
+--            elsif backpressure_out_z2 = '1' and backpressure_out_z = '0' then
+--              output_z <= X"5C";
+--              enc_kin <= '1';
+            if trigger_z2 = '0' and trigger_Z = '1' then 
               output_z <= X"FB";
               enc_kin <= '1';
             elsif input_valid(iLink) = '1' and input_ready(iLink) = '1' then
@@ -130,18 +130,27 @@ begin  -- architecture vhdl
       end if;
     end process;
 
-    input_ready(iLink) <= '1' when (not (trigger_z = '1' and trigger_z2 = '0') and ((backpressure_out_z2 xor backpressure_out_z) = '0')) and outputMode_z = "11" else '0';
+    --input_ready(iLink) <= '1' when (not (trigger_z = '1' and trigger_z2 = '0') and ((backpressure_out_z2 xor backpressure_out_z) = '0')) and outputMode_z = "11" else '0';
+    input_ready(iLink) <= '1' when (not (trigger_z = '1' and trigger_z2 = '0')) and outputMode_z = "11" else '0';
 
-    encoder_8b10b_inst: encoder_8b10b
+    enc_8b10b_inst: enc_8b10b
       port map (
-        clock      => clk.serial25,
-        rd_reset   => '0',
-        din        => output_z,
-        din_valid  => '1',
-        kin        => enc_kin,
-        dout       => dout_10b,
-        dout_valid => open,
-        rd_out     => open);
+        reset   => reset.serial,
+        clk     => clk.serial25,
+        ena     => '1',
+        KI      => enc_kin,
+        datain  => output_z,
+        dataout => dout_10b);
+--    encoder_8b10b_inst: encoder_8b10b
+--      port map (
+--        clock      => clk.serial25,
+--        rd_reset   => '0',
+--        din        => output_z,
+--        din_valid  => '1',
+--        kin        => enc_kin,
+--        dout       => dout_10b,
+--        dout_valid => open,
+--        rd_out     => open);
 
     serializer : process(clk.serial125)
     begin

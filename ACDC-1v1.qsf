@@ -393,6 +393,7 @@ set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "0 MHz" -to calEnable[1]
 set_location_assignment PIN_D7 -to SMA_J3
 set_location_assignment PIN_T10 -to clockIn.wr100
 set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "0 MHz" -to calInputSel
+set_global_assignment -name VHDL_FILE lib/enc_8b10b.vhd
 set_global_assignment -name VHDL_FILE src/PSEC4/gearbox_12to16.vhd
 set_global_assignment -name VHDL_FILE lib/manchester_decoder.vhd
 set_global_assignment -name VHDL_FILE src/data_readout_control.vhd

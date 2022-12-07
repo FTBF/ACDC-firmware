@@ -17,6 +17,7 @@ architecture behaviour of manchester_decoder is
   signal Q3 : std_logic;
   signal Q4 : std_logic;
   signal STROBE : std_logic;
+  signal STROBE_z : std_logic;
   signal EDGE : std_logic;
   signal nreset_sync : std_logic;
 begin
@@ -46,8 +47,9 @@ begin
       Q3 <= Q2;
       Q4 <= Q3 and (Q4 or Q2);
       STROBE <= (not Q2) and (not Q4) and EDGE;
+      STROBE_z <= STROBE;
 
-      if STROBE = '1' then
+      if STROBE_z = '1' then
         q <= Q1;
       end if;
     end if;

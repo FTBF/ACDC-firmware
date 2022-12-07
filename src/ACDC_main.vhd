@@ -63,8 +63,8 @@ architecture vhdl of	ACDC_main is
 	signal	trigInfo           : trigInfo_type;
 	signal	selfTrig_mode      : std_logic;
 	signal	selfTrig_rateCount : selfTrig_rateCount_array;
-	signal  trig_count_all     : std_logic_vector(15 downto 0);
-    signal  trig_count	       : std_logic_vector(15 downto 0);
+	signal  trig_count_all     : std_logic_vector(31 downto 0);
+    signal  trig_count	       : std_logic_vector(31 downto 0);
     signal  trig_count_reset   : std_logic;
 	signal	FLL_lock           : std_logic_vector(N-1 downto 0);
 	signal	rampDone           : std_logic_vector(7 downto 0);
@@ -87,7 +87,6 @@ architecture vhdl of	ACDC_main is
 	signal 	trig_busy 		   : std_logic;
 	signal 	led_trig		   : std_logic_vector(8 downto 0);
 	signal 	led_mono		   : std_logic_vector(8 downto 0);
-    signal  reset_acc_z        : std_logic;
     signal  reset_sync         : std_logic;
 	
 	signal  rxparams           : RX_Param_jcpll_type;
@@ -217,34 +216,25 @@ begin
   end if;
 end process;
   
-PreRESET_SYNC_25MHz : process(clock.acc40)
-begin
-  if rising_edge(clock.acc40) then
-    reset_acc_z <= reset.acc;
-  end if;
-end process;
+RESET_SYNC_25MHz : sync_Bits_Altera
+  generic map (
+    BITS       => 1,
+    INIT       => x"00000000",
+    SYNC_DEPTH => 2)
+  port map (
+    Clock  => clock.serial25,
+    Input(0)  => reset.acc,
+    Output(0) => reset.serial);
 
-RESET_SYNC_25MHz : process(clock.serial25)
-  variable reset_sync_1 : std_logic;
-  variable reset_sync_2 : std_logic;
-begin
-  if rising_edge(clock.serial25) then
-    reset.serial <= reset_sync_2;
-    reset_sync_2 := reset_sync_1;
-    reset_sync_1 := reset_acc_z;
-  end if;
-end process;
-
-RESET_SYNC_125MHz : process(clock.serial125)
-  variable reset_sync_1 : std_logic;
-  variable reset_sync_2 : std_logic;
-begin
-  if rising_edge(clock.serial125) then
-    reset.serialFast <= reset_sync_2;
-    reset_sync_2 := reset_sync_1;
-    reset_sync_1 := reset.serial;
-  end if;
-end process;
+RESET_SYNC_125MHz : sync_Bits_Altera
+  generic map (
+    BITS       => 1,
+    INIT       => x"00000000",
+    SYNC_DEPTH => 2)
+  port map (
+    Clock  => clock.serial125,
+    Input(0)  => reset.serial,
+    Output(0) => reset.serialFast);
 
 RESET_SYNC_WR250MHz: sync_Bits_Altera
   generic map (
@@ -363,7 +353,7 @@ serialTx_highSpeed_inst: serialTx_highSpeed
     input_kout  => dataToSend_kout,
     trigger     => trig_out,
     backpressure_out => backpressure_in_acdc,
-    outputMode => rxparams_acc.outputMode,
+    outputMode => rxparams.outputMode,
     output => serialTx_data);
 	
 data_readout_control_inst: data_readout_control
@@ -407,8 +397,10 @@ rx_cmd_map: rxCommand PORT map
 ------------------------------------
 cmd_handler_map: commandHandler port map (
 		reset	       => reset.acc,
+        reset_serial   => reset.serial,
 		clock	       => clock.acc40,
-        clock_out      => clock.sys,     
+        clock_out      => clock.sys,
+        clock_serial   => clock.serial25,
         din		       => cmd.word,	
         din_valid      => cmd.valid,
         params         => rxparams,

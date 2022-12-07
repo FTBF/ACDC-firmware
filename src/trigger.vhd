@@ -47,8 +47,8 @@ entity trigger is
 			trig_clear		 : buffer std_logic;
 			trig_out		 : buffer std_logic;
             trig_out_debug   : out std_logic;
-			trig_count_all   : out std_logic_vector(15 downto 0);
-            trig_count	     : out std_logic_vector(15 downto 0);
+			trig_count_all   : out std_logic_vector(31 downto 0);
+            trig_count	     : out std_logic_vector(31 downto 0);
             trig_count_reset : in  std_logic;
             wr_timeOcc       : out std_logic_vector(5 downto 0);
             sys_timeOcc      : out std_logic_vector(5 downto 0)
@@ -58,6 +58,7 @@ end trigger;
 architecture vhdl of trigger is
 
     signal 	acc_trig_in:	std_logic;
+    signal  acc_trig_in_sync: std_logic;
   	signal 	acc_trig_in_x:	std_logic;
 	signal 	trig_latch:	std_logic;
 	signal 	trig_latch_x:	std_logic;
@@ -81,6 +82,8 @@ architecture vhdl of trigger is
     signal  wr_ts_fifo_empty : std_logic;
     signal  sys_ts_fifo_empty : std_logic;
     signal  trigInfo_z		 : trigInfo_type;
+    signal  reset_fast : std_logic;
+    signal  reset_sync : std_logic;
 	
 begin  
 
@@ -104,23 +107,43 @@ begin
 -- TRIGGER SELECT
 ---------------------------------------
 
+  fast_reset_Sync: sync_Bits_Altera
+    generic map (
+      BITS       => 1,
+      INIT       => "00000000",
+      SYNC_DEPTH => 2)
+    port map (
+      Clock     => clock.x8,
+      Input(0)  => reset.global,
+      Output(0) => reset_fast);
+  
 -- decode acc_trig
 manchester_decoder_inst: manchester_decoder
   port map (
     clk    => clock.x8,
-    resetn => not reset.global,
+    resetn => not reset_fast,
     i      => acc_trig,
     q      => acc_trig_in);
+
+
+acc_trig_sync : pulseSync2
+  port map (
+    src_clk      => clock.x8,
+    src_pulse    => acc_trig_in,
+    src_aresetn  => not reset_fast,
+    dest_clk     => clock.sys,
+    dest_pulse   => acc_trig_in_sync,
+    dest_aresetn => not reset.global);
 
 trig_out_debug <= acc_trig_in;
 
 TRIG_ACCEPT_SEL: process(all)
 begin
     case trigSetup.mode is
-        when 0 => trig_common <= '0';          -- mode 0 trigger off
-        when 1 => trig_common <= acc_trig_in;  -- mode 1 external source
-        when 2 => trig_common <= self_trig;    -- mode 2 self trigger
-        when 3 => trig_common <= self_trig;    -- mode 3 self trigger with ACC accept
+        when 0 => trig_common <= '0';               -- mode 0 trigger off
+        when 1 => trig_common <= acc_trig_in_sync;  -- mode 1 external source
+        when 2 => trig_common <= self_trig;         -- mode 2 self trigger
+        when 3 => trig_common <= self_trig;         -- mode 3 self trigger with ACC accept
         when others => trig_common <= '0';
     end case;
 end process;
@@ -181,9 +204,19 @@ begin
   end if;
 end process;
 
+medium_reset_Sync: sync_Bits_Altera
+  generic map (
+    BITS       => 1,
+    INIT       => "00000000",
+    SYNC_DEPTH => 2)
+  port map (
+    Clock     => clock.sys,
+    Input(0)  => reset.global,
+    Output(0) => reset_sync);
+
 timeFifo_SYS: timeFifo
   port map (
-    aclr    => reset.global,
+    aclr    => reset_sync,
     wrclk   => clock.x4,
     wrreq   => save_timestamps_sys_sync,
     data    => timestamp_z2,
