@@ -39,7 +39,9 @@ begin
       Q2 <= '0';
       Q3 <= '0';
       Q4 <= '0';
-      STROBE <= '0';
+      STROBE   <= '0';
+      STROBE_Z <= '0';
+      q <= '0';
     elsif rising_edge(clk) then
       Q0 <= i;
       Q1 <= not Q0;
