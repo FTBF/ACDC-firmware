@@ -339,7 +339,7 @@ begin
                     t := t;
                     save_timestamps <= '0';
                     
-                    if backpressure_in = '1' or backpressure_in_acdc = '1' then
+                    if (backpressure_in = '1' and trigSetup.acc_backpressure_enable = '1') or backpressure_in_acdc = '1' then
                       state := TRIG_RESET;
                     else
                       case trigSetup.mode is

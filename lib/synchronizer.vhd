@@ -349,6 +349,7 @@ begin
       dest_params.trigSetup.mode       <= 0;
       dest_params.trigSetup.timeout    <= 0;
       dest_params.trigSetup.sma_invert <= '0';
+      dest_params.trigSetup.acc_backpressure_enable <= '0';
       for i in 0 to N-1 loop
         for j in 0 to M-1 loop
           dest_params.selfTrig.threshold(i, j)	<= 0;
@@ -364,25 +365,27 @@ begin
     else
       if rising_Edge(dest_clk) then
         if src_latch_sync = '1' then
-          dest_params.trigSetup.mode       <= src_params_latch.trigSetup.mode;
-          dest_params.trigSetup.timeout    <= src_params_latch.trigSetup.timeout;
-          dest_params.trigSetup.sma_invert <= src_params_latch.trigSetup.sma_invert;
-          dest_params.selfTrig             <= src_params_latch.selfTrig;
-          dest_params.Vbias                <= src_params_latch.Vbias;
-          dest_params.DLL_Vdd              <= src_params_latch.DLL_Vdd;
-          dest_params.RO_target            <= src_params_latch.RO_target;
-          dest_params.testMode             <= src_params_latch.testMode;
+          dest_params.trigSetup.mode                    <= src_params_latch.trigSetup.mode;
+          dest_params.trigSetup.timeout                 <= src_params_latch.trigSetup.timeout;
+          dest_params.trigSetup.sma_invert              <= src_params_latch.trigSetup.sma_invert;
+          dest_params.trigSetup.acc_backpressure_enable <= src_params.trigSetup.acc_backpressure_enable;
+          dest_params.selfTrig                          <= src_params_latch.selfTrig;
+          dest_params.Vbias                             <= src_params_latch.Vbias;
+          dest_params.DLL_Vdd                           <= src_params_latch.DLL_Vdd;
+          dest_params.RO_target                         <= src_params_latch.RO_target;
+          dest_params.testMode                          <= src_params_latch.testMode;
 
           dest_latch <= '1';
         else
-          dest_params.trigSetup.mode       <= dest_params.trigSetup.mode;
-          dest_params.trigSetup.timeout    <= dest_params.trigSetup.timeout;
-          dest_params.trigSetup.sma_invert <= dest_params.trigSetup.sma_invert;
-          dest_params.selfTrig             <= dest_params.selfTrig;
-          dest_params.Vbias                <= dest_params.Vbias;
-          dest_params.DLL_Vdd              <= dest_params.DLL_Vdd;
-          dest_params.RO_target            <= dest_params.RO_target;
-          dest_params.testMode             <= dest_params.testMode;
+          dest_params.trigSetup.mode                    <= dest_params.trigSetup.mode;
+          dest_params.trigSetup.timeout                 <= dest_params.trigSetup.timeout;
+          dest_params.trigSetup.sma_invert              <= dest_params.trigSetup.sma_invert;
+          dest_params.trigSetup.acc_backpressure_enable <= dest_params.trigSetup.acc_backpressure_enable;
+          dest_params.selfTrig                          <= dest_params.selfTrig;
+          dest_params.Vbias                             <= dest_params.Vbias;
+          dest_params.DLL_Vdd                           <= dest_params.DLL_Vdd;
+          dest_params.RO_target                         <= dest_params.RO_target;
+          dest_params.testMode                          <= dest_params.testMode;
 
           dest_latch <= '0';
         end if;

@@ -119,6 +119,7 @@ begin
 				params_z.trigSetup.sma_invert <= '0';
                 params_z.trigSetup.timeout <= 0;
 				params_z.selfTrig.coincidence_min <= 1;
+                params_z.trigSetup.acc_backpressure_enable <= '0';
 			
 				---------------------------
 			
@@ -244,6 +245,9 @@ begin
 									when x"0" => params_z.testMode.trig_noTransfer <= din(0);
 									when others => null;
 								end case;
+
+                            when x"7" => --
+                                params_z.trigSetup.acc_backpressure_enable <= din(0);
 								
 								
 								

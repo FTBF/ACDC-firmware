@@ -34,7 +34,7 @@ constant firmwareVersion: firmwareVersion_type:= (
   
   number =>     x"0410", 
   year =>       x"2022",    
-  MMDD =>       x"1207"         -- month, date
+  MMDD =>       x"1209"         -- month, date
   
 );
 --
@@ -354,6 +354,7 @@ type trig_type is record
 	eventAndTime_reset:	std_logic;					-- clear system time counter and event counter
 	sma_invert: std_logic;
     timeout : natural range 0 to 127;
+    acc_backpressure_enable : std_logic;
 end record;
 
 
