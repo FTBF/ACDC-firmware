@@ -91,7 +91,7 @@ begin
 					RAMP_CNT 	<= RAMP_CNT + 1;
 					if RAMP_CNT = WILKRAMPCOUNT then  --set ramp length w.r.t. clock
 						RAMP_CNT 	<= (others => '0');
-							RO_EN 		<='1';
+                        RO_EN 		<='1';
 						state 	:= EXTLATCH_RISE;
 					end if;
 			

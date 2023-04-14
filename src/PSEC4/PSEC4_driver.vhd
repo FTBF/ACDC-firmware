@@ -72,11 +72,10 @@ variable r: std_logic;
 begin
 	if (rising_edge(clock.sys)) then 						
 		if (reset.global = '1' or DLL_resetRequest = '1') then t := 0; end if;		-- restart counter if new reset request	
-		if (t >= 40000000) then r := '0'; else r := '1'; t := t + 1; end if;
+		if (t >= 400000) then r := '0'; else r := '1'; t := t + 1; end if;
 		DLL_reset <= r; 			
 	end if;
 end process;
-			
 
 ------------------------------------
 --	TRIGGER 
@@ -192,8 +191,8 @@ begin
 					
 			when ENABLE =>		-- stays in this state for 100ms
 					
-				if (VCDL_MONITOR_BIT_z = '1' and countV < 65500) then countV := countV + 1; end if;
-				if (WILK_MONITOR_BIT_z = '1' and countW < 65500) then countW := countW + 1; end if;
+				if (VCDL_MONITOR_BIT_z = '1' and countV < 120000000) then countV := countV + 1; end if;
+				if (WILK_MONITOR_BIT_z = '1' and countW < 65500)     then countW := countW + 1; end if;
 				if (clock.update = '1') then 
 					Wlkn_fdbk_current <= countW;
 					VCDL_count <= std_logic_vector(countV);

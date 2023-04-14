@@ -277,52 +277,111 @@ end process;
 Reply_frame_mux : process(all)
 begin
   
-  if IDpage = X"0" then
-    IDframe_data(0) <= x"1234";
-    IDframe_data(1) <= x"BBBB";
-    IDframe_data(2) <= firmwareVersion.number;
-    IDframe_data(3) <= firmwareVersion.year;
-    IDframe_data(4) <= firmwareVersion.MMDD;
-    IDframe_data(5) <= x"000" & "00" & backpressure & serialRx.disparity_error;
-    IDframe_data(6) <= x"0" & "000" & FLL_lock & clock.altpllLock & clock.accpllLock & clock.serialpllLock & clock.wrpllLock;
-    IDframe_data(7) <= x"0000";
-    IDframe_data(8) <= x"0000";
-    IDframe_data(9) <= info(0,1);	-- wlkn feedback current (channel 0)		
-    IDframe_data(10) <= info(0,2);	-- wlkn feedback target (channel 0)	
-    IDframe_data(11) <= trig_count_all(31 downto 16);
-    IDframe_data(12) <= trig_count_all(15 downto 0);
-    IDframe_data(13) <= trig_count(31 downto 16);
-    IDframe_data(14) <= trig_count(15 downto 0);
-    IDframe_data(15) <= std_logic_vector(eventCount(31 downto 16));
-    IDframe_data(16) <= std_logic_vector(eventCount(15 downto 0));
-    IDframe_data(17) <= std_logic_vector(IDframeCount(31 downto 16));
-    IDframe_data(18) <= std_logic_vector(IDframeCount(15 downto 0));
-    IDframe_data(19) <= (others => '0');
-    IDframe_data(20) <= (others => '0');
-    IDframe_data(21) <= fifoOcc_z(0);
-    IDframe_data(22) <= fifoOcc_z(1);
-    IDframe_data(23) <= fifoOcc_z(2);
-    IDframe_data(24) <= fifoOcc_z(3);
-    IDframe_data(25) <= fifoOcc_z(4);
-    IDframe_data(26) <= x"00" & "00" & wr_timeOcc_z;
-    IDframe_data(27) <= x"00" & "00" & sys_timeOcc_z;
-    IDframe_data(28) <= std_logic_vector(serialNumber(31 downto 16));
-    IDframe_data(29) <= std_logic_vector(serialNumber(15 downto 0));
-    IDframe_data(30) <= x"BBBB";
-    IDframe_data(31) <= x"4321";
-  else
-    IDframe_data(0) <= x"1234";
-    IDframe_data(1) <= x"BBBB";
-    for i in 2 to 15 loop
-      IDframe_data(i) <= info(to_integer(unsigned(IDpage))+1, i-2);
-    end loop;
-    for i in 16 to 29 loop
-      IDframe_data(i) <= (others => '0');
-    end loop;
-    IDframe_data(30) <= x"BBBB";
-    IDframe_data(31) <= x"4321";
+  case IDpage is
+    when X"0" => 
+      IDframe_data(0) <= x"1234";
+      IDframe_data(1) <= x"BBBB";
+      IDframe_data(2) <= firmwareVersion.number;
+      IDframe_data(3) <= firmwareVersion.year;
+      IDframe_data(4) <= firmwareVersion.MMDD;
+      IDframe_data(5) <= x"000" & "00" & backpressure & serialRx.disparity_error;
+      IDframe_data(6) <= x"0" & "000" & FLL_lock & clock.altpllLock & clock.accpllLock & clock.serialpllLock & clock.wrpllLock;
+      IDframe_data(7) <= x"0000";
+      IDframe_data(8) <= x"0000";
+      IDframe_data(9) <= info(0,1);	-- wlkn feedback current (channel 0)		
+      IDframe_data(10) <= info(0,2);	-- wlkn feedback target (channel 0)	
+      IDframe_data(11) <= trig_count_all(31 downto 16);
+      IDframe_data(12) <= trig_count_all(15 downto 0);
+      IDframe_data(13) <= trig_count(31 downto 16);
+      IDframe_data(14) <= trig_count(15 downto 0);
+      IDframe_data(15) <= std_logic_vector(eventCount(31 downto 16));
+      IDframe_data(16) <= std_logic_vector(eventCount(15 downto 0));
+      IDframe_data(17) <= std_logic_vector(IDframeCount(31 downto 16));
+      IDframe_data(18) <= std_logic_vector(IDframeCount(15 downto 0));
+      IDframe_data(19) <= (others => '0');
+      IDframe_data(20) <= (others => '0');
+      IDframe_data(21) <= fifoOcc_z(0);
+      IDframe_data(22) <= fifoOcc_z(1);
+      IDframe_data(23) <= fifoOcc_z(2);
+      IDframe_data(24) <= fifoOcc_z(3);
+      IDframe_data(25) <= fifoOcc_z(4);
+      IDframe_data(26) <= x"00" & "00" & wr_timeOcc_z;
+      IDframe_data(27) <= x"00" & "00" & sys_timeOcc_z;
+      IDframe_data(28) <= std_logic_vector(serialNumber(31 downto 16));
+      IDframe_data(29) <= std_logic_vector(serialNumber(15 downto 0));
+      IDframe_data(30) <= x"BBBB";
+      IDframe_data(31) <= x"4321";
+    when X"1" =>  -- this is stupid, but activeHDL made me do it 
+      IDframe_data(0) <= x"1234";
+      IDframe_data(1) <= x"BBBB";
+      for i in 2 to 15 loop
+        IDframe_data(i) <= info(0, i-2);
+      end loop;
+      IDframe_data(16)(15 downto 4) <= "000000000000";
+      IDframe_data(16)(3 downto 0) <= IDpage;
+      for i in 17 to 29 loop
+        IDframe_data(i) <= (others => '0');
+      end loop;
+      IDframe_data(30) <= x"BBBB";
+      IDframe_data(31) <= x"4321";
+    when X"2" =>  -- this is stupid, but activeHDL made me do it 
+      IDframe_data(0) <= x"1234";
+      IDframe_data(1) <= x"BBBB";
+      for i in 2 to 15 loop
+        IDframe_data(i) <= info(1, i-2);
+      end loop;
+      IDframe_data(16)(15 downto 4) <= "000000000000";
+      IDframe_data(16)(3 downto 0) <= IDpage;
+      for i in 17 to 29 loop
+        IDframe_data(i) <= (others => '0');
+      end loop;
+      IDframe_data(30) <= x"BBBB";
+      IDframe_data(31) <= x"4321";
+    when X"3" =>  -- this is stupid, but activeHDL made me do it 
+      IDframe_data(0) <= x"1234";
+      IDframe_data(1) <= x"BBBB";
+      for i in 2 to 15 loop
+        IDframe_data(i) <= info(2, i-2);
+      end loop;
+      IDframe_data(16)(15 downto 4) <= "000000000000";
+      IDframe_data(16)(3 downto 0) <= IDpage;
+      for i in 17 to 29 loop
+        IDframe_data(i) <= (others => '0');
+      end loop;
+      IDframe_data(30) <= x"BBBB";
+      IDframe_data(31) <= x"4321";
+    when X"4" =>  -- this is stupid, but activeHDL made me do it 
+      IDframe_data(0) <= x"1234";
+      IDframe_data(1) <= x"BBBB";
+      for i in 2 to 15 loop
+        IDframe_data(i) <= info(3, i-2);
+      end loop;
+      IDframe_data(16)(15 downto 4) <= "000000000000";
+      IDframe_data(16)(3 downto 0) <= IDpage;
+      for i in 17 to 29 loop
+        IDframe_data(i) <= (others => '0');
+      end loop;
+      IDframe_data(30) <= x"BBBB";
+      IDframe_data(31) <= x"4321";
+    when X"5" =>  -- this is stupid, but activeHDL made me do it 
+      IDframe_data(0) <= x"1234";
+      IDframe_data(1) <= x"BBBB";
+      for i in 2 to 15 loop
+        IDframe_data(i) <= info(4, i-2);
+      end loop;
+      IDframe_data(16)(15 downto 4) <= "000000000000";
+      IDframe_data(16)(3 downto 0) <= IDpage;
+      for i in 17 to 29 loop
+        IDframe_data(i) <= (others => '0');
+      end loop;
+      IDframe_data(30) <= x"BBBB";
+      IDframe_data(31) <= x"4321";
+    when others =>  -- this is stupid, but activeHDL made me do it 
+      for i in 0 to 31 loop
+        IDframe_data(i) <= (others => '0');
+      end loop;
     
-  end if;
+  end case;
   
 end process;
                

@@ -23,7 +23,7 @@ architecture vhdl of risingEdgeDetect is
 
 
 
-signal	reset: std_logic;
+signal	reset: std_logic := '1';
 signal	latch: std_logic;
 
 

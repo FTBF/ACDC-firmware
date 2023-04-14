@@ -75,19 +75,11 @@ variable acdc_cmd: 		std_logic_vector(31 downto 0);
 variable m: 		natural;
 variable x: natural;	
 variable opt: natural range 0 to 15;
-variable init: std_logic:='1';
 
 begin
 	if (rising_edge(clock)) then
 
-      if (init = '1') then
-			
-			-- do once only at power-up
-			
-			init := '0';
-			params_z.testMode.DLL_updateEnable <= "11111";	-- default is all enabled
-		
-		end if;
+        params_z.testMode.DLL_updateEnable <= "11111";	-- default is all enabled
 		
 		if (reset = '1' or din_valid = '0') then  
 		

@@ -32,9 +32,9 @@ end record;
 --------------------------------
 constant firmwareVersion: firmwareVersion_type:= (
   
-  number =>     x"0410", 
+  number =>     x"0411", 
   year =>       x"2022",    
-  MMDD =>       x"1209"         -- month, date
+  MMDD =>       x"1229"         -- month, date
   
 );
 --
@@ -82,7 +82,7 @@ type info_type is array (4 downto 0, 0 to 13) of std_logic_vector(15 downto 0);
 
 
 
-constant WILKRAMPCOUNT	: integer   := 160; --set ramp length w.r.t. clock
+constant WILKRAMPCOUNT	: integer   := 180; --set ramp length w.r.t. clock
 constant RAM_ADR_SIZE  	: integer   := 14;
 
 
