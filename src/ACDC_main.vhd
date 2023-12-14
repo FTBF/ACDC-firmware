@@ -658,7 +658,7 @@ SYS_TIME_RESET: sync_Bits_Altera
     INIT       => x"00000000",
     SYNC_DEPTH => 2)
   port map (
-    Clock     => clock.x8,
+    Clock     => clock.sys,
     Input(0)  => reset.global or rxparams.trigSetup.eventAndTime_reset,
     Output(0) => systemTime_reset);   
 
