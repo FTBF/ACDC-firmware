@@ -30,6 +30,7 @@ architecture vhdl of serialTx_highSpeed is
   signal prbs_pattern : std_logic_vector(15 downto 0);
   signal serial_out : a2_2bit;
   signal idleStream : std_logic_vector(7 downto 0);
+  signal input_ready_z : std_logic_vector(1 downto 0);
 
 begin  -- architecture vhdl
   
@@ -73,6 +74,11 @@ begin  -- architecture vhdl
     signal trigger_z2 : std_logic;
     signal backpressure_out_z  : std_logic;
     signal backpressure_out_z2 : std_logic;
+    signal disp_8b10b : std_logic;
+    signal trig_latch : std_logic;
+    signal trig_latch_25 : std_logic;
+    signal trig_release : std_logic;
+    signal trig_release_25 : std_logic;
   
   begin
 
@@ -93,15 +99,26 @@ begin  -- architecture vhdl
         Input(0)  => backpressure_out,
         Output(0) => backpressure_out_z);
     
-    output_mux : process(clk.serial25)
+    trig_release_25_gen : process(clk.serial25)
     begin
       if rising_edge(clk.serial25) then
-        trigger_z <= trigger;
-        trigger_z2 <= trigger_z;
-
         backpressure_out_z2 <= backpressure_out_z;
-        
         outputMode_z <= outputMode;
+
+        input_ready(iLink) <= input_ready_z(iLink);
+        
+        if trig_latch_25 = '1' then
+          trig_release_25 <= '1';
+        else
+        trig_release_25 <= '0';
+        end if;
+      end if;
+    end process;
+                    
+
+    output_mux : process(all)--clk.serial25)
+    begin
+--      if rising_edge(clk.serial25) then
         case outputMode_z is
           when "01"   =>
             output_z <= prbs_pattern(7 downto 0);
@@ -113,10 +130,10 @@ begin  -- architecture vhdl
 --            elsif backpressure_out_z2 = '1' and backpressure_out_z = '0' then
 --              output_z <= X"5C";
 --              enc_kin <= '1';
-            if trigger_z2 = '0' and trigger_Z = '1' then 
-              output_z <= X"FB";
-              enc_kin <= '1';
-            elsif input_valid(iLink) = '1' and input_ready(iLink) = '1' then
+--            if trigger_z2 = '0' and trigger_Z = '1' then 
+--              output_z <= X"FB";
+--              enc_kin <= '1';
+            if input_valid(iLink) = '1' then
               output_z <= input(iLink);
               enc_kin <= input_kout(iLink);
             else
@@ -127,39 +144,48 @@ begin  -- architecture vhdl
             output_z <= idleStream;
             enc_kin <= '1';
         end case;
-      end if;
+--      end if;
     end process;
 
     --input_ready(iLink) <= '1' when (not (trigger_z = '1' and trigger_z2 = '0') and ((backpressure_out_z2 xor backpressure_out_z) = '0')) and outputMode_z = "11" else '0';
-    input_ready(iLink) <= '1' when (not (trigger_z = '1' and trigger_z2 = '0')) and outputMode_z = "11" else '0';
+    input_ready_z(iLink) <= '1' when (trig_latch_25 = '0' and outputMode_z = "11") else '0';
 
     enc_8b10b_inst: enc_8b10b
       port map (
         reset   => reset.serial,
         clk     => clk.serial25,
-        ena     => '1',
+        ena     => not trig_release_25,--'1',--input_valid(iLink),
         KI      => enc_kin,
         datain  => output_z,
-        dataout => dout_10b);
---    encoder_8b10b_inst: encoder_8b10b
---      port map (
---        clock      => clk.serial25,
---        rd_reset   => '0',
---        din        => output_z,
---        din_valid  => '1',
---        kin        => enc_kin,
---        dout       => dout_10b,
---        dout_valid => open,
---        rd_out     => open);
+        dataout => dout_10b,
+        disp_out => disp_8b10b);
 
     serializer : process(clk.serial125)
     begin
       if rising_edge(clk.serial125) then
+        trigger_z <= trigger;
+        trigger_z2 <= trigger_z;
+
         if reset.serial = '1' then
           serial_cnt <= "000";
           dout_10b_sync <= "0101010101";
           serial_out(iLink) <= "01";
+          trig_latch <= '0';
+          trig_latch_25 <= '0';
+          trig_release <= '0';
         else
+          if trigger_z = '1' and trigger_z2 = '0' then
+            trig_latch <= '1';
+          elsif trig_release = '1' then
+            trig_latch <= '0';
+          end if;
+          
+          if trigger_z = '1' and trigger_z2 = '0' then
+            trig_latch_25 <= '1';
+          elsif trig_release_25 = '1' then
+            trig_latch_25 <= '0';
+          end if;
+
           if serial_cnt < 4 then
             serial_cnt <= serial_cnt + 1;
           else
@@ -167,8 +193,19 @@ begin  -- architecture vhdl
           end if;
 
           if serial_cnt = 0 then
-            dout_10b_sync <= dout_10b;
+            if (trigger_z = '1' and trigger_z2 = '0') or trig_latch = '1' then
+              trig_release <= '1';
+              if disp_8b10b = '1' then
+                dout_10b_sync <= "1101101000";
+              else
+                dout_10b_sync <= "0010010111";
+              end if;
+            else
+              trig_release <= '0';
+              dout_10b_sync <= dout_10b;
+            end if;
           else
+            trig_release <= '0';
             dout_10b_sync <= dout_10b_sync(7 downto 0) & "00";
           end if;
           
