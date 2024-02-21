@@ -34,6 +34,7 @@ entity dataHandler is
     pro_vdd			   :	in		natArray16;
     vcdl_count		   :	in		array32;
     FLL_lock           :    in      std_logic_vector(N-1 downto 0);
+    jcpll_lock		   :    in      std_logic;
     eventCount		   :	in		std_logic_vector(31 downto 0);
     IDrequest		   :	in		std_logic;
     IDpage             :    in      std_logic_vector(3 downto 0);
@@ -285,7 +286,7 @@ begin
       IDframe_data(3) <= firmwareVersion.year;
       IDframe_data(4) <= firmwareVersion.MMDD;
       IDframe_data(5) <= x"000" & "00" & backpressure & serialRx.disparity_error;
-      IDframe_data(6) <= x"0" & "000" & FLL_lock & clock.altpllLock & clock.accpllLock & clock.serialpllLock & clock.wrpllLock;
+      IDframe_data(6) <= x"0" & "00" & jcpll_lock & FLL_lock & clock.altpllLock & clock.accpllLock & clock.serialpllLock & clock.wrpllLock;
       IDframe_data(7) <= x"0000";
       IDframe_data(8) <= x"0000";
       IDframe_data(9) <= info(0,1);	-- wlkn feedback current (channel 0)		
