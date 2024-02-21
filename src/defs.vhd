@@ -32,9 +32,9 @@ end record;
 --------------------------------
 constant firmwareVersion: firmwareVersion_type:= (
   
-  number =>     x"0413", 
+  number =>     x"0414", 
   year =>       x"2024",    
-  MMDD =>       x"0207"         -- month, date
+  MMDD =>       x"0220"         -- month, date
   
 );
 --

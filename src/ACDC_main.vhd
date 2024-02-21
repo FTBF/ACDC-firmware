@@ -301,8 +301,8 @@ backpressure_cdc: sync_Bits_Altera
     Input(0)  => backpressure_in,
     Output(0) => backpressure_in_ser);
 
-debug2 <= trig_out_debug;
-debug3 <= self_trig;
+debug2 <= PSEC4_in(0).DLL_clock;
+debug3 <= PSEC4_in(1).DLL_clock;
    
 ------------------------------------
 --	SERIAL TX

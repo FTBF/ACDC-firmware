@@ -312,9 +312,25 @@ component enc_8b10b is
     ena     : in  std_logic;
     KI      : in  std_logic;
     datain  : in  std_logic_vector(7 downto 0);
-    dataout : out std_logic_vector(9 downto 0);
-    disp_out : out std_logic);
+    dataout : out std_logic_vector(9 downto 0));
 end component enc_8b10b;
+
+component clkRateTool is
+  Generic(
+		  CLK_REF_RATE_HZ  : natural := 100000000;
+		  COUNTER_WIDTH    : natural := 32;
+		  MEASURE_PERIOD_s : natural := 1;
+		  MEASURE_TIME_s   : real := 0.001
+		  );
+
+	Port(
+	  reset_in   : in std_logic;
+	  clk_ref    : in std_logic;
+	  clk_test   : in std_logic;
+	  value      : out std_logic_vector(COUNTER_WIDTH-1 downto 0)
+	);
+end component clkRateTool;
+
 
 End LibDG;
 

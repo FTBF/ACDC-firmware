@@ -40,8 +40,7 @@ entity enc_8b10b is
         ena : in std_logic ;           -- To validate datain and register dataout and disparity
         KI : in std_logic ;            -- Control (K) input(active high) 
         datain : in std_logic_vector(7 downto 0); --8 bit input data
-        dataout : out std_logic_vector(9 downto 0); --10 bit encoded output
-        disp_out : out std_logic
+        dataout : out std_logic_vector(9 downto 0) --10 bit encoded output
         ); 
 end enc_8b10b; 
  
@@ -97,7 +96,6 @@ begin
     gi <= datain(6) ;
     hi <= datain(7) ;
 
-    disp_out <= dispin;
     disp_proc: process(clk, reset)
     begin
         if reset = '1' then
