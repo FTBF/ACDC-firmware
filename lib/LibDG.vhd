@@ -312,8 +312,7 @@ component enc_8b10b is
     ena     : in  std_logic;
     KI      : in  std_logic;
     datain  : in  std_logic_vector(7 downto 0);
-    dataout : out std_logic_vector(9 downto 0);
-    disp_out : out std_logic);
+    dataout : out std_logic_vector(9 downto 0));
 end component enc_8b10b;
 
 component clkRateTool is

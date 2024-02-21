@@ -113,7 +113,6 @@ component dataHandler is
       pro_vdd			 :	in		natArray16;
       vcdl_count		 :	in		array32;
       FLL_lock           :  in      std_logic_vector(N-1 downto 0);
-      jcpll_lock		 :  in      std_logic;
       eventCount		 :	in		std_logic_vector(31 downto 0);
       IDrequest      	 :	in		std_logic;
       IDpage             :  in      std_logic_vector(3 downto 0);

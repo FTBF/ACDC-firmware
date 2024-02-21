@@ -439,7 +439,6 @@ dataHandler_map: dataHandler port map (
 		pro_vdd			   => pro_vdd,
 		vcdl_count		   => vcdl_count,
         FLL_lock           => FLL_lock,
-        jcpll_lock         => jcpll_lock,
         eventCount		   => eventCount,
 		selfTrig_rateCount => selfTrig_rateCount,
         trig_count_all     => trig_count_all,
