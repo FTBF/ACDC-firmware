@@ -195,7 +195,7 @@ begin
 				if (WILK_MONITOR_BIT_z = '1' and countW < 65500)     then countW := countW + 1; end if;
 				if (clock.update = '1') then 
 					Wlkn_fdbk_current <= countW;
-					VCDL_count <= std_logic_vector(countV);
+					--VCDL_count <= std_logic_vector(countV);
 					state := UPDATE;
 				end if;
 					
@@ -253,7 +253,20 @@ end process;
 
 
 edge_detect_wilk_monitor: risingEdgeDetect port map(clock.sys, PSEC4_in.ringOsc_mon, WILK_MONITOR_BIT_z);
-edge_detect_vcdl_monitor: risingEdgeDetect port map(clock.sys, PSEC4_in.DLL_clock, VCDL_MONITOR_BIT_z);
+--edge_detect_vcdl_monitor: risingEdgeDetect port map(clock.sys, PSEC4_in.DLL_clock, VCDL_MONITOR_BIT_z);
 
- 
+vcdl_count_logic : clkRateTool
+  generic map(
+		  CLK_REF_RATE_HZ  => 40000000,
+		  COUNTER_WIDTH    => 32,
+		  MEASURE_PERIOD_s => 1,
+		  MEASURE_TIME_s   => 0.1
+		  )
+	port map(
+	  reset_in  => reset.acc,
+	  clk_ref   => clock.acc40,
+	  clk_test  => PSEC4_in.DLL_clock,
+	  value     => VCDL_count
+	);
+
 end vhdl;
