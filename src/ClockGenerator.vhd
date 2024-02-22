@@ -29,6 +29,8 @@ entity ClockGenerator is
 		clock			: 	buffer	clock_type;
         PLL_ConfigRequest       : in std_logic;
         PLL_ConfigReg           : in std_logic_vector(31 downto 0);
+        clkRate_ACC    :  out std_logic_vector(15 downto 0);
+        clkRate_jcpll  :  out std_logic_vector(15 downto 0);
         reset                   : in std_logic
 	);		
 end ClockGenerator;
@@ -44,7 +46,11 @@ architecture vhdl of ClockGenerator is
 
   signal PLL_ConfigRequest_sync : std_logic;
   signal serialClock	: std_logic := '0'; --default for sim
-	
+
+  signal resetLocalOsc   : std_logic;
+  signal clkRate_ACC_z   : std_logic_vector(15 downto 0);
+  signal clkRate_jcpll_z : std_logic_vector(15 downto 0);
+  
 begin
 
 
@@ -104,11 +110,78 @@ begin
 end process;
 
 	
+---------------------------------------
+-- Clock Rate Monitor
+---------------------------------------
 	
+accClkMon : clkRateTool
+  generic map(
+    CLK_REF_RATE_HZ  => 33333333,
+    COUNTER_WIDTH    => 16,
+    MEASURE_PERIOD_s => 1,
+    MEASURE_TIME_s   => 0.001
+    )
+  port map(
+    reset_in  => reset,
+    clk_ref   => clockIn.localOsc,
+    clk_test  => clock.acc40,
+    value     => clkRate_ACC_z
+	);
+
+jcpllClkMon : clkRateTool
+  generic map(
+    CLK_REF_RATE_HZ  => 33333333,
+    COUNTER_WIDTH    => 16,
+    MEASURE_PERIOD_s => 1,
+    MEASURE_TIME_s   => 0.001
+    )
+  port map(
+    reset_in  => reset,
+    clk_ref   => clockIn.localOsc,
+    clk_test  => clock.sys,
+    value     => clkRate_jcpll_z
+	);
 	
-	
-	
-	
+localOsc_reset_sync: sync_Bits_Altera
+generic map(
+    BITS        => 1,
+    INIT        => x"00000000",
+    SYNC_DEPTH  => 2
+    )
+  port map(
+    Clock      => clockIn.localOsc,
+    Input(0)   => reset,
+    Output(0)  => resetLocalOsc
+    );
+  
+accClkMonSync: handshake_sync
+  generic map(
+    WIDTH => 16
+  )
+  port map(
+    src_clk      => clockIn.localOsc,
+    src_params   => clkRate_ACC_z,
+    src_aresetn  => not resetLocalOsc,
+
+    dest_clk      => clock.acc40,
+    dest_params   => clkRate_ACC,
+    dest_aresetn  => not reset
+  );
+
+jcpllClkMonSync: handshake_sync
+  generic map(
+    WIDTH => 16
+  )
+  port map(
+    src_clk      => clockIn.localOsc,
+    src_params   => clkRate_jcpll_z,
+    src_aresetn  => not resetLocalOsc,
+
+    dest_clk      => clock.acc40,
+    dest_params   => clkRate_jcpll,
+    dest_aresetn  => not reset
+  );
+ 	
 	
 ---------------------------------------
 -- JITTER CLEANER PROGRAMMING CLOCK GENERATOR
@@ -122,10 +195,6 @@ begin
 		if (t >= SERIAL_CLK_DIV_RATIO /2) then serialClock <= '1'; else serialClock <= '0'; end if;
 	end if;
 end process;
-
-	
-	
-	
 
 	
 ---------------------------------------

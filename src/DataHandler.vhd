@@ -46,6 +46,8 @@ entity dataHandler is
     fifoOcc            :    in      Array16;
     trig_count_all     :    in      std_logic_vector(31 downto 0);
     trig_count	       :    in      std_logic_vector(31 downto 0);
+    clkRate_ACC        :    in      std_logic_vector(15 downto 0);
+    clkRate_jcpll      :    in      std_logic_vector(15 downto 0);
     backpressure       :    in      std_logic;
     wr_timeOcc         :    in      std_logic_vector(5 downto 0);
     sys_timeOcc        :    in      std_logic_vector(5 downto 0)
@@ -287,8 +289,8 @@ begin
       IDframe_data(4) <= firmwareVersion.MMDD;
       IDframe_data(5) <= x"000" & "00" & backpressure & serialRx.disparity_error;
       IDframe_data(6) <= x"0" & "00" & jcpll_lock & FLL_lock & clock.altpllLock & clock.accpllLock & clock.serialpllLock & clock.wrpllLock;
-      IDframe_data(7) <= x"0000";
-      IDframe_data(8) <= x"0000";
+      IDframe_data(7) <= clkRate_ACC;
+      IDframe_data(8) <= clkRate_jcpll;
       IDframe_data(9) <= info(0,1);	-- wlkn feedback current (channel 0)		
       IDframe_data(10) <= info(0,2);	-- wlkn feedback target (channel 0)	
       IDframe_data(11) <= trig_count_all(31 downto 16);

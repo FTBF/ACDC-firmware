@@ -32,9 +32,9 @@ end record;
 --------------------------------
 constant firmwareVersion: firmwareVersion_type:= (
   
-  number =>     x"0414", 
+  number =>     x"0415", 
   year =>       x"2024",    
-  MMDD =>       x"0220"         -- month, date
+  MMDD =>       x"0221"         -- month, date
   
 );
 --
@@ -393,14 +393,14 @@ end record;
 --	SERIAL RX
 ------------------------------------
 type serialRx_type is record
-	serial					:	std_logic;
-	data						:	std_logic_vector(7 downto 0);
-	valid						:	std_logic;
-	kout						:	std_logic;
-   rx_clock_fail			:	std_logic;
-   symbol_align_error	:	std_logic;
-   symbol_code_error		:	std_logic;
-   disparity_error		:	std_logic;
+  serial				:	std_logic;
+  data					:	std_logic_vector(7 downto 0);
+  valid					:	std_logic;
+  kout					:	std_logic;
+  rx_clock_fail			:	std_logic;
+  symbol_align_error	:	std_logic;
+  symbol_code_error		:	std_logic;
+  disparity_error		:	std_logic;
 end record;
 
 

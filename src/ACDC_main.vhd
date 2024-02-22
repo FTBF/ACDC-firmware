@@ -127,7 +127,9 @@ architecture vhdl of	ACDC_main is
     signal wr_timeOcc          : std_logic_vector(5 downto 0);
     signal sys_timeOcc         : std_logic_vector(5 downto 0);
 
-
+    signal clkRate_ACC         : std_logic_vector(15 downto 0);
+    signal clkRate_jcpll       : std_logic_vector(15 downto 0);
+    
     signal trig_out_debug   : std_logic;
 		
 begin
@@ -260,6 +262,8 @@ clockGen_inst: ClockGenerator
     clock             => clock,
     PLL_ConfigRequest => rxparams_acc.PLL_ConfigRequest,
     PLL_ConfigReg     => rxparams_acc.PLL_ConfigReg,
+    clkRate_ACC       => clkRate_ACC,
+    clkRate_jcpll     => clkRate_jcpll,
     reset             => reset.acc);
 
 
@@ -432,6 +436,9 @@ dataHandler_map: dataHandler port map (
         rxparams           => rxparams_syncAcc,
 		IDrequest		   => rxparams_acc.IDrequest,
         IDpage             => rxparams_acc.IDpage,
+        clkRate_ACC        => clkRate_ACC,
+        clkRate_jcpll      => clkRate_jcpll,
+        
 
         --jc pll clock parameters, these need CDC!!!
         trigInfo		   => trigInfo,

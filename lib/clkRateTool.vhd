@@ -67,7 +67,7 @@ begin
 			-- Add 6 to account for the systematic offset caused by the clock
 			-- domain crossers.
 			if (refCtr = SAMPLE_TIME) then
-				value <= std_logic_vector(unsigned(rateCtr_refclk) + 6);
+				value <= std_logic_vector(unsigned(rateCtr_refclk) + 8);
 			end if;
 		end if;
     end if;
