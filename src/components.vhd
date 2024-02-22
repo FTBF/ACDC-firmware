@@ -44,6 +44,8 @@ component ClockGenerator is
     clock             : buffer clock_type;
     PLL_ConfigRequest : in     std_logic;
     PLL_ConfigReg     : in     std_logic_vector(31 downto 0);
+    clkRate_ACC       : out    std_logic_vector(15 downto 0);
+    clkRate_jcpll     : out    std_logic_vector(15 downto 0);
     reset             : in     std_logic);
 end component ClockGenerator;
 		
@@ -125,6 +127,8 @@ component dataHandler is
       fifoOcc            :  in  Array16;
       trig_count_all     :  in  std_logic_vector(31 downto 0);
       trig_count	     :  in  std_logic_vector(31 downto 0);
+      clkRate_ACC        :  in  std_logic_vector(15 downto 0);
+      clkRate_jcpll      :  in  std_logic_vector(15 downto 0);
       backpressure       :  in  std_logic;
       wr_timeOcc         :  in  std_logic_vector(5 downto 0);
       sys_timeOcc        :  in  std_logic_vector(5 downto 0)
