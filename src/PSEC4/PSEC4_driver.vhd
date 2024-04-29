@@ -214,8 +214,12 @@ begin
 				-- calculate step size
 				if (error_mag = 0) then
 					step := 0;
-				elsif (error_mag > 1000) then
+				elsif (error_mag > 500) then
+					step := 20;			-- larger step size if further away, so it gets there quicker
+				elsif (error_mag > 250) then
 					step := 10;			-- larger step size if further away, so it gets there quicker
+				elsif (error_mag > 150) then
+					step := 5;			-- larger step size if further away, so it gets there quicker
 				else
 					step := 1;
 				end if;							
